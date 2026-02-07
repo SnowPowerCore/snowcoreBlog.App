@@ -1,0 +1,19 @@
+{
+    "AppNameKey": "ProjectSettings:Name",
+    "snowcoreBlogAppSettingsJson": "snowcoreBlog.App.appsettings.json",
+    "snowcoreBlogAppSettingsDebugJson": "snowcoreBlog.App.appsettings.Debug.json",
+    "ButtonStaticText": "Click me",
+    "ButtonClickedTimesText": "Clicked {0} times!",
+    "DotNetBotImgSrc": "dotnet_bot.png",
+    "HeaderText": "Hello, World!",
+    "SubheaderText": "Welcome to MauiReactor: MAUI with super powers!",
+    "SemanticDotNetBotDesc": "Cute dot net bot waving hi to you!",
+    "HomeShellTitle": "Home",
+    "SettingsShellTitle": "Settings",
+    "GoToFirstPageText": "Go to First Page",
+    "GoToThirdPageText": "Go to Third Page",
+    "GoToSettingsPageText": "Go to Settings Page",
+    "SecondPageTitle": "Second page",
+    "GoToRootPageText": "Go to Root Page",
+    "SettingsPageTitle": "Settings"
+}

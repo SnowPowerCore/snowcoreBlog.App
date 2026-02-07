@@ -1,0 +1,67 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Windows Debug (Hot Reload)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-windows",
+            "program": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "${workspaceFolder}\\snowcoreBlog.App\\snowcoreBlog.App.csproj",
+                "--framework",
+                "net9.0-windows10.0.19041.0",
+                "--no-build",
+                "--launch-profile",
+                "Windows Machine"
+            ],
+            "cwd": "${workspaceFolder}\\snowcoreBlog.App",
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "requireExactSource": false,
+            "enableStepFiltering": true,
+            "justMyCode": false,
+            "env": {
+                "DOTNET_MODIFIABLE_ASSEMBLIES": "debug"
+            }
+        },
+        {
+            "name": "Android Hot Reload",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "maui-reactor",
+                "-f",
+                "net9.0-android",
+                "-d",
+                "${workspaceFolder}\\snowcoreBlog.App",
+                "-m",
+                "Slim"
+            ],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "iOS Hot Reload",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "maui-reactor",
+                "-f",
+                "net9.0-ios",
+                "-d",
+                "${workspaceFolder}\\snowcoreBlog.App",
+                "-m",
+                "Slim"
+            ],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal"
+        }
+    ]
+}

@@ -8,6 +8,8 @@ public class AppShell : Component
 {
     private readonly HomePage _homePage = new();
     private readonly SettingsPage _settingsPage = new();
+    private readonly TabTwoPage _tabTwoPage = new();
+    private readonly TabThreePage _tabThreePage = new();
 
     public override VisualNode Render() =>
         DeviceInfo.Current.Platform == DevicePlatform.WinUI
@@ -23,7 +25,15 @@ public class AppShell : Component
             ShellContent()
                 .Title(TranslationResources.SettingsShellTitle)
                 .Icon("icon_settings.svg")
-                .RenderContent<SettingsPage>(() => _settingsPage)
+                .RenderContent<SettingsPage>(() => _settingsPage),
+            ShellContent()
+                .Title("Tab Two")
+                .Icon("icon_home.svg")
+                .RenderContent<TabTwoPage>(() => _tabTwoPage),
+            ShellContent()
+                .Title("Tab Three")
+                .Icon("icon_home.svg")
+                .RenderContent<TabThreePage>(() => _tabThreePage)
         );
 
     private VisualNode RenderOther() =>
@@ -36,7 +46,15 @@ public class AppShell : Component
                 ShellContent()
                     .Title(TranslationResources.SettingsShellTitle)
                     .Icon("icon_settings.svg")
-                    .RenderContent<SettingsPage>(() => _settingsPage)
+                    .RenderContent<SettingsPage>(() => _settingsPage),
+                ShellContent()
+                    .Title("Tab Two")
+                    .Icon("icon_home.svg")
+                    .RenderContent<TabTwoPage>(() => _tabTwoPage),
+                ShellContent()
+                    .Title("Tab Three")
+                    .Icon("icon_home.svg")
+                    .RenderContent<TabThreePage>(() => _tabThreePage)
             )
         );
 }

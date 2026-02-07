@@ -87,4 +87,9 @@
 		</Compile>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Features\TabThree\" />
+	  <Folder Include="Features\TabTwo\" />
+	</ItemGroup>
+
 </Project>

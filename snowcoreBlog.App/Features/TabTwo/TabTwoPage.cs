@@ -1,31 +1,18 @@
 ﻿using Nalu;
-using snowcoreBlog.App.Features.Home;
 
 namespace snowcoreBlog.App.Features.Settings;
 
-public partial class SettingsPage : Component, IAppearingAware, IDisposable
+public partial class TabTwoPage : Component, IAppearingAware, IDisposable
 {
     private bool _disposed = false;
 
-    [Inject]
-    private readonly INavigationService _navigation;
-
-    public override VisualNode Render() =>
-        ContentPage(
-            ButtonKit(() => TranslationResources.GoToRootPageText)
-                .ThemeKey(ApplicationTheme.Primary)
-                .OnClicked(NavigateToRootAsync)
-        )
-        .Title(TranslationResources.SettingsPageTitle);
+    public override VisualNode Render() => ContentPage().Title("Tab Two");
         
     public ValueTask OnAppearingAsync()
     {
-        Console.WriteLine($"Navigated to {nameof(SettingsPage)}");
+        Console.WriteLine($"Navigated to {nameof(TabTwoPage)}");
         return ValueTask.CompletedTask;
     }
-
-    public Task NavigateToRootAsync() =>
-        _navigation.GoToAsync(Nalu.Navigation.Absolute().Root<HomePage>());
         
     public void Dispose()
     {

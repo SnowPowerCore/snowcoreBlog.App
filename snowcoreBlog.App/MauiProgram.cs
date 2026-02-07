@@ -52,7 +52,9 @@ public static class MauiProgram
                 configurator
                     .SetRoot<HomePage>()
                     .AddPage<SecondPage>()
+                    .AddPage<TabTwoPage>()
                     .AddPage<ThirdPage>()
+                    .AddPage<TabThreePage>()
                     .AddPage<SettingsPage>()
                     .WithLeakDetectorState(Nalu.NavigationLeakDetectorState.EnabledWithDebugger);
             });

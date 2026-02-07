@@ -22,7 +22,7 @@ public class CustomShellItemRenderer : ShellItemRenderer
     private const float ItemInsetDp = 2.6f;
     private const float ItemCornerRadiusDp = 15f;
     private const float SelectedLightenFactor = 0.15f;
-    private const float MinScale = 0.02f;
+    private const float MinScale = 0.95f;
     private const long SelectDurationMs = 180;
     private const long DeselectDurationMs = 160;
     private const string ItemBackgroundTag = "TabItemBackground";
@@ -242,8 +242,8 @@ public class CustomShellItemRenderer : ShellItemRenderer
         var targetScale = isSelected ? 1f : MinScale;
         var duration = isSelected ? SelectDurationMs : DeselectDurationMs;
         IInterpolator interpolator = isSelected
-            ? new AccelerateInterpolator()
-            : new DecelerateInterpolator();
+            ? new PathInterpolator(0.2f, 0f, 0.2f, 1f)
+            : new PathInterpolator(0.3f, 0f, 0.2f, 1f);
 
         var animator = backgroundView.Animate();
         if (animator == null)

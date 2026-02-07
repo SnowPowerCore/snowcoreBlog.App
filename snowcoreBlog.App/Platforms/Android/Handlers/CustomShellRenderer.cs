@@ -97,13 +97,13 @@ public sealed class CustomShellBottomNavViewAppearanceTracker : ShellBottomNavVi
 
 		if (bottomView.LayoutParameters is ViewGroup.MarginLayoutParams marginLayoutParams)
 		{
-			marginLayoutParams.SetMargins(marginPx, marginPx, marginPx, marginPx);
+			marginLayoutParams.SetMargins(marginPx + marginPx, marginPx, marginPx + marginPx, marginPx);
 			bottomView.LayoutParameters = marginLayoutParams;
 		}
 		else if (bottomView.LayoutParameters != null)
 		{
 			var newLayoutParams = new ViewGroup.MarginLayoutParams(bottomView.LayoutParameters);
-			newLayoutParams.SetMargins(marginPx, marginPx, marginPx, marginPx);
+			newLayoutParams.SetMargins(marginPx + marginPx, marginPx, marginPx + marginPx, marginPx);
 			bottomView.LayoutParameters = newLayoutParams;
 		}
 

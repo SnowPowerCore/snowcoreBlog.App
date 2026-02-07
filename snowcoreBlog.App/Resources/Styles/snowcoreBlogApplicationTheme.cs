@@ -122,7 +122,5 @@ public class snowcoreBlogApplicationTheme : InternalCustomApplicationTheme
         {
             VisualElementExtensions.BackgroundColor(_, IsDarkTheme ? NeutralDarkDarkest : NeutralLightLightest);
         };
-        TabBarStyles.Default = static _ => _
-            .Set(MauiControls.Shell.TabBarBackgroundColorProperty, Colors.Black);
     }
 }

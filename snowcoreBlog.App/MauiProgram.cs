@@ -90,6 +90,11 @@ public static class MauiProgram
     private static IConfigurationRoot GetAppSettingsConfig(string resourceUri)
     {
         using var appSettingsStream = typeof(MauiProgram).Assembly.GetManifestResourceStream(resourceUri);
+        if (appSettingsStream == null)
+        {
+            return new ConfigurationBuilder().Build();
+        }
+
         return new ConfigurationBuilder().AddJsonStream(appSettingsStream).Build();
     }
 }

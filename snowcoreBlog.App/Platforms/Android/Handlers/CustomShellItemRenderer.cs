@@ -22,11 +22,14 @@ public class CustomShellItemRenderer : ShellItemRenderer
     private const float ItemInsetDp = 2.6f;
     private const float ItemCornerRadiusDp = 15f;
     private const float SelectedLightenFactor = 0.15f;
-    private const float MinScale = 0.75f;
-    private const long SelectDurationMs = 120;
+    private const float MinScaleX = 0.75f;
+    private const float MinScaleY = 0.9f;
+    private const long SelectDurationMs = 240;
     private const long DeselectDurationMs = 120;
     private const string ItemBackgroundTag = "TabItemBackground";
     private const string ItemContentTag = "TabItemContent";
+    private static readonly IInterpolator SelectInterpolator = new PathInterpolator(0.2f, 0f, 0f, 1f);
+    private static readonly IInterpolator DeselectInterpolator = new PathInterpolator(0.3f, 0f, 0.2f, 1f);
     private readonly ConditionalWeakTable<AView, SelectionState> _selectionStates = new();
     private Drawable.ConstantState? _selectedItemState;
     private Drawable.ConstantState? _unselectedItemState;
@@ -340,11 +343,9 @@ public class CustomShellItemRenderer : ShellItemRenderer
 
     private static void AnimateSelection(AView backgroundView, bool isSelected)
     {
-        var targetScale = isSelected ? 1f : MinScale;
+        var targetScale = isSelected ? 1f : MinScaleX;
         var duration = isSelected ? SelectDurationMs : DeselectDurationMs;
-        IInterpolator interpolator = isSelected
-            ? new PathInterpolator(0.2f, 0f, 0.2f, 1f)
-            : new PathInterpolator(0.3f, 0f, 0.2f, 1f);
+        var interpolator = isSelected ? SelectInterpolator : DeselectInterpolator;
 
         var animator = backgroundView.Animate();
         if (animator == null)
@@ -356,8 +357,8 @@ public class CustomShellItemRenderer : ShellItemRenderer
         backgroundView.Alpha = isSelected ? 1f : 0f;
         if (isSelected)
         {
-            backgroundView.ScaleX = MinScale;
-            backgroundView.ScaleY = MinScale;
+            backgroundView.ScaleX = MinScaleX;
+            backgroundView.ScaleY = MinScaleY;
         }
 
         animator

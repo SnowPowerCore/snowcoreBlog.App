@@ -1,4 +1,5 @@
 using Nalu;
+using Nalu.Reactor;
 using snowcoreBlog.App.Features.Home;
 using snowcoreBlog.App.Features.Settings;
 
@@ -16,16 +17,12 @@ public class AppShell : Component
             ? RenderWindows()
             : RenderOther();
 
-    private VisualNode RenderWindows() =>
+    private NaluReactorShell RenderWindows() =>
         AppShellControl(
             ShellContent()
                 .Title(TranslationResources.HomeShellTitle)
                 .Icon("icon_home.svg")
                 .RenderContent<HomePage>(() => _homePage),
-            ShellContent()
-                .Title(TranslationResources.SettingsShellTitle)
-                .Icon("icon_settings.svg")
-                .RenderContent<SettingsPage>(() => _settingsPage),
             ShellContent()
                 .Title("Tab Two")
                 .Icon("icon_home.svg")
@@ -33,10 +30,14 @@ public class AppShell : Component
             ShellContent()
                 .Title("Tab Three")
                 .Icon("icon_home.svg")
-                .RenderContent<TabThreePage>(() => _tabThreePage)
+                .RenderContent<TabThreePage>(() => _tabThreePage),
+            ShellContent()
+                .Title(TranslationResources.SettingsShellTitle)
+                .Icon("icon_settings.svg")
+                .RenderContent<SettingsPage>(() => _settingsPage)
         );
 
-    private VisualNode RenderOther() =>
+    private NaluReactorShell RenderOther() =>
         AppShellControl(
             TabBar(
                 ShellContent()
@@ -44,17 +45,17 @@ public class AppShell : Component
                     .Icon("icon_home.svg")
                     .RenderContent<HomePage>(() => _homePage),
                 ShellContent()
-                    .Title(TranslationResources.SettingsShellTitle)
-                    .Icon("icon_settings.svg")
-                    .RenderContent<SettingsPage>(() => _settingsPage),
-                ShellContent()
                     .Title("Tab Two")
                     .Icon("icon_home.svg")
                     .RenderContent<TabTwoPage>(() => _tabTwoPage),
                 ShellContent()
                     .Title("Tab Three")
                     .Icon("icon_home.svg")
-                    .RenderContent<TabThreePage>(() => _tabThreePage)
+                    .RenderContent<TabThreePage>(() => _tabThreePage),
+                ShellContent()
+                    .Title(TranslationResources.SettingsShellTitle)
+                    .Icon("icon_settings.svg")
+                    .RenderContent<SettingsPage>(() => _settingsPage)
             )
         );
 }

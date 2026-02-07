@@ -12,7 +12,7 @@ using Microsoft.Maui.Platform;
 using AColor = Android.Graphics.Color;
 using AResource = Android.Resource;
 using AView = Android.Views.View;
-using Android.Transitions;
+using AndroidContent = Android.Content;
 
 namespace snowcoreBlog.App.Platforms.Android.Handlers;
 
@@ -26,6 +26,7 @@ public class CustomShellItemRenderer : ShellItemRenderer
     private const long SelectDurationMs = 120;
     private const long DeselectDurationMs = 120;
     private const string ItemBackgroundTag = "TabItemBackground";
+    private const string ItemContentTag = "TabItemContent";
     private readonly ConditionalWeakTable<AView, SelectionState> _selectionStates = new();
     private Drawable.ConstantState? _selectedItemState;
     private Drawable.ConstantState? _unselectedItemState;
@@ -158,10 +159,13 @@ public class CustomShellItemRenderer : ShellItemRenderer
                 continue;
             }
 
-            if (itemView.FindViewWithTag(ItemBackgroundTag) is not null)
+            if (itemView.FindViewWithTag(ItemBackgroundTag) is not null
+                && itemView.FindViewWithTag(ItemContentTag) is not null)
             {
                 continue;
             }
+
+            itemView.RemoveAllViews();
 
             var selectedDrawable = _selectedItemState?.NewDrawable()?.Mutate() as GradientDrawable
                 ?? new GradientDrawable();
@@ -169,15 +173,15 @@ public class CustomShellItemRenderer : ShellItemRenderer
                 ?? new GradientDrawable();
 
             var stateList = new StateListDrawable();
-            stateList.AddState(new[] { AResource.Attribute.StateChecked }, new InsetDrawable(selectedDrawable, _cachedInsetPx));
-            stateList.AddState(new[] { -AResource.Attribute.StateChecked }, new InsetDrawable(unselectedDrawable, _cachedInsetPx));
+            stateList.AddState([AResource.Attribute.StateChecked], new InsetDrawable(selectedDrawable, _cachedInsetPx));
+            stateList.AddState([-AResource.Attribute.StateChecked], new InsetDrawable(unselectedDrawable, _cachedInsetPx));
 
             var backgroundView = new AView(context)
             {
                 DuplicateParentStateEnabled = true,
-                Tag = ItemBackgroundTag
+                Tag = ItemBackgroundTag,
+                Background = stateList
             };
-            backgroundView.Background = stateList;
 
             var layoutParams = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
@@ -193,8 +197,73 @@ public class CustomShellItemRenderer : ShellItemRenderer
             itemView.SetClipChildren(false);
             itemView.AddView(backgroundView, 0, layoutParams);
 
+            var contentView = CreateCustomItemContent(bottomView, i, metrics);
+            if (contentView != null)
+            {
+                itemView.AddView(contentView);
+            }
+
             EnsureSelectionAnimator(itemView, backgroundView);
         }
+    }
+
+    private static LinearLayout? CreateCustomItemContent(BottomNavigationView bottomView, int index, DisplayMetrics metrics)
+    {
+        var context = bottomView.Context;
+        if (context == null)
+        {
+            return null;
+        }
+
+        var menu = bottomView.Menu;
+        if (menu == null || index < 0 || index >= menu.Size())
+        {
+            return null;
+        }
+
+        var menuItem = menu.GetItem(index);
+        var iconSizePx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, 24f, metrics);
+        var labelMarginPx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, 2f, metrics);
+
+        var container = new LinearLayout(context)
+        {
+            Orientation = Orientation.Vertical,
+            Tag = ItemContentTag
+        };
+        container.SetGravity(GravityFlags.Center);
+        container.DuplicateParentStateEnabled = true;
+        container.LayoutParameters = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent,
+            ViewGroup.LayoutParams.MatchParent);
+
+        var iconView = new ImageView(context);
+        iconView.SetImageDrawable(menuItem.Icon);
+        iconView.DuplicateParentStateEnabled = true;
+        iconView.ImageTintList = bottomView.ItemIconTintList;
+        iconView.LayoutParameters = new LinearLayout.LayoutParams(iconSizePx, iconSizePx)
+        {
+            Gravity = GravityFlags.CenterHorizontal
+        };
+
+        var labelView = new TextView(context)
+        {
+            Text = menuItem.TitleFormatted?.ToString() ?? menuItem.TitleCondensedFormatted?.ToString() ?? string.Empty,
+            DuplicateParentStateEnabled = true
+        };
+        labelView.SetTextColor(GetLabelColorStateList());
+        labelView.SetTextSize(ComplexUnitType.Sp, 12f);
+        labelView.LayoutParameters = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WrapContent,
+            ViewGroup.LayoutParams.WrapContent)
+        {
+            Gravity = GravityFlags.CenterHorizontal,
+            TopMargin = labelMarginPx
+        };
+
+        container.AddView(iconView);
+        container.AddView(labelView);
+
+        return container;
     }
 
     private void EnsureDrawableCache(DisplayMetrics metrics)
@@ -307,14 +376,9 @@ public class CustomShellItemRenderer : ShellItemRenderer
         backgroundView.Alpha = isSelected ? 1f : 0f;
     }
 
-    private sealed class SelectionLayoutListener : Java.Lang.Object, AView.IOnLayoutChangeListener
+    private sealed class SelectionLayoutListener(SelectionState state) : Java.Lang.Object, AView.IOnLayoutChangeListener
     {
-        private readonly SelectionState _state;
-
-        public SelectionLayoutListener(SelectionState state)
-        {
-            _state = state;
-        }
+        private readonly SelectionState _state = state;
 
         public void OnLayoutChange(AView v, int left, int top, int right, int bottom,
             int oldLeft, int oldTop, int oldRight, int oldBottom)
@@ -331,16 +395,10 @@ public class CustomShellItemRenderer : ShellItemRenderer
         }
     }
 
-    private sealed class SelectionState
+    private sealed class SelectionState(AView itemView, AView backgroundView)
     {
-        public SelectionState(AView itemView, AView backgroundView)
-        {
-            ItemView = itemView;
-            BackgroundView = backgroundView;
-        }
-
-        public AView ItemView { get; }
-        public AView BackgroundView { get; }
+        public AView ItemView { get; } = itemView;
+        public AView BackgroundView { get; } = backgroundView;
         public bool? IsSelected { get; set; }
         public SelectionLayoutListener? Listener { get; set; }
     }
@@ -360,5 +418,22 @@ public class CustomShellItemRenderer : ShellItemRenderer
         var g = color.G + (int)((255 - color.G) * factor);
         var b = color.B + (int)((255 - color.B) * factor);
         return AColor.Argb(color.A, r, g, b);
+    }
+
+    private static AndroidContent.Res.ColorStateList GetLabelColorStateList()
+    {
+        var selected = AColor.Argb(255, 255, 255, 255).ToArgb();
+        var unselected = AColor.Argb(160, 255, 255, 255).ToArgb();
+
+        var states = new int[][]
+        {
+            [-AResource.Attribute.StateEnabled],
+            [AResource.Attribute.StateChecked],
+            []
+        };
+
+        var colors = new[] { unselected, selected, unselected };
+
+        return new AndroidContent.Res.ColorStateList(states, colors);
     }
 }

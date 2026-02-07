@@ -162,5 +162,4 @@ public sealed class CustomShellBottomNavViewAppearanceTracker : ShellBottomNavVi
 
 		return TypedValue.ApplyDimension(ComplexUnitType.Dip, dp, metrics);
 	}
-
 }

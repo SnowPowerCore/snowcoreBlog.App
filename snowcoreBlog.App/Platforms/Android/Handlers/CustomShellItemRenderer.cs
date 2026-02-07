@@ -1,5 +1,4 @@
 using Android.Graphics.Drawables;
-using Android.Animation;
 using Android.OS;
 using Android.Util;
 using Android.Views;
@@ -13,6 +12,7 @@ using Microsoft.Maui.Platform;
 using AColor = Android.Graphics.Color;
 using AResource = Android.Resource;
 using AView = Android.Views.View;
+using Android.Transitions;
 
 namespace snowcoreBlog.App.Platforms.Android.Handlers;
 
@@ -22,11 +22,16 @@ public class CustomShellItemRenderer : ShellItemRenderer
     private const float ItemInsetDp = 2.6f;
     private const float ItemCornerRadiusDp = 15f;
     private const float SelectedLightenFactor = 0.15f;
-    private const float MinScale = 0.95f;
-    private const long SelectDurationMs = 180;
-    private const long DeselectDurationMs = 160;
+    private const float MinScale = 0.75f;
+    private const long SelectDurationMs = 120;
+    private const long DeselectDurationMs = 120;
     private const string ItemBackgroundTag = "TabItemBackground";
     private readonly ConditionalWeakTable<AView, SelectionState> _selectionStates = new();
+    private Drawable.ConstantState? _selectedItemState;
+    private Drawable.ConstantState? _unselectedItemState;
+    private int _cachedSelectedArgb;
+    private int _cachedInsetPx;
+    private float _cachedCornerRadiusPx;
 
     public CustomShellItemRenderer(IShellContext shellContext) : base(shellContext) { }
 
@@ -144,8 +149,7 @@ public class CustomShellItemRenderer : ShellItemRenderer
             return;
         }
 
-        var insetPx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, ItemInsetDp, metrics);
-        var cornerRadiusPx = TypedValue.ApplyDimension(ComplexUnitType.Dip, ItemCornerRadiusDp, metrics);
+        EnsureDrawableCache(metrics);
 
         for (var i = 0; i < menuView.ChildCount; i++)
         {
@@ -154,22 +158,19 @@ public class CustomShellItemRenderer : ShellItemRenderer
                 continue;
             }
 
-            if (itemView.FindViewWithTag(ItemBackgroundTag) is AView)
+            if (itemView.FindViewWithTag(ItemBackgroundTag) is not null)
             {
                 continue;
             }
 
-            var selectedDrawable = new GradientDrawable();
-            selectedDrawable.SetColor(GetSelectedItemBackground());
-            selectedDrawable.SetCornerRadius(cornerRadiusPx);
-
-            var unselectedDrawable = new GradientDrawable();
-            unselectedDrawable.SetColor(AColor.Transparent);
-            unselectedDrawable.SetCornerRadius(cornerRadiusPx);
+            var selectedDrawable = _selectedItemState?.NewDrawable()?.Mutate() as GradientDrawable
+                ?? new GradientDrawable();
+            var unselectedDrawable = _unselectedItemState?.NewDrawable()?.Mutate() as GradientDrawable
+                ?? new GradientDrawable();
 
             var stateList = new StateListDrawable();
-            stateList.AddState(new[] { AResource.Attribute.StateChecked }, new InsetDrawable(selectedDrawable, insetPx));
-            stateList.AddState(new[] { -AResource.Attribute.StateChecked }, new InsetDrawable(unselectedDrawable, insetPx));
+            stateList.AddState(new[] { AResource.Attribute.StateChecked }, new InsetDrawable(selectedDrawable, _cachedInsetPx));
+            stateList.AddState(new[] { -AResource.Attribute.StateChecked }, new InsetDrawable(unselectedDrawable, _cachedInsetPx));
 
             var backgroundView = new AView(context)
             {
@@ -182,10 +183,10 @@ public class CustomShellItemRenderer : ShellItemRenderer
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.MatchParent)
             {
-                LeftMargin = insetPx,
-                TopMargin = insetPx,
-                RightMargin = insetPx,
-                BottomMargin = insetPx
+                LeftMargin = _cachedInsetPx,
+                TopMargin = _cachedInsetPx,
+                RightMargin = _cachedInsetPx,
+                BottomMargin = _cachedInsetPx
             };
 
             itemView.SetClipToPadding(false);
@@ -194,6 +195,37 @@ public class CustomShellItemRenderer : ShellItemRenderer
 
             EnsureSelectionAnimator(itemView, backgroundView);
         }
+    }
+
+    private void EnsureDrawableCache(DisplayMetrics metrics)
+    {
+        var insetPx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, ItemInsetDp, metrics);
+        var cornerRadiusPx = TypedValue.ApplyDimension(ComplexUnitType.Dip, ItemCornerRadiusDp, metrics);
+        var selectedColor = GetSelectedItemBackground();
+        var selectedArgb = selectedColor.ToArgb();
+
+        if (_selectedItemState != null
+            && _unselectedItemState != null
+            && _cachedInsetPx == insetPx
+            && Math.Abs(_cachedCornerRadiusPx - cornerRadiusPx) < 0.5f
+            && _cachedSelectedArgb == selectedArgb)
+        {
+            return;
+        }
+
+        var selectedDrawable = new GradientDrawable();
+        selectedDrawable.SetColor(selectedColor);
+        selectedDrawable.SetCornerRadius(cornerRadiusPx);
+
+        var unselectedDrawable = new GradientDrawable();
+        unselectedDrawable.SetColor(AColor.Transparent);
+        unselectedDrawable.SetCornerRadius(cornerRadiusPx);
+
+        _selectedItemState = selectedDrawable.GetConstantState();
+        _unselectedItemState = unselectedDrawable.GetConstantState();
+        _cachedInsetPx = insetPx;
+        _cachedCornerRadiusPx = cornerRadiusPx;
+        _cachedSelectedArgb = selectedArgb;
     }
 
     private void EnsureSelectionAnimator(ViewGroup itemView, AView backgroundView)
@@ -252,7 +284,7 @@ public class CustomShellItemRenderer : ShellItemRenderer
         }
 
         animator.Cancel();
-        backgroundView.Alpha = isSelected ? 1f : backgroundView.Alpha;
+        backgroundView.Alpha = isSelected ? 1f : 0f;
         if (isSelected)
         {
             backgroundView.ScaleX = MinScale;
@@ -260,12 +292,12 @@ public class CustomShellItemRenderer : ShellItemRenderer
         }
 
         animator
+            .WithLayer()
             .ScaleX(targetScale)
             .ScaleY(targetScale)
-            .Alpha(isSelected ? 1f : 0f)
             .SetDuration(duration)
             .SetInterpolator(interpolator)
-            .SetListener(isSelected ? null : new ResetScaleOnEndListener(backgroundView));
+            .SetListener(null);
     }
 
     private static void SetSelectionScale(AView backgroundView, bool isSelected)
@@ -273,22 +305,6 @@ public class CustomShellItemRenderer : ShellItemRenderer
         backgroundView.ScaleX = 1f;
         backgroundView.ScaleY = 1f;
         backgroundView.Alpha = isSelected ? 1f : 0f;
-    }
-
-    private sealed class ResetScaleOnEndListener : AnimatorListenerAdapter
-    {
-        private readonly AView _target;
-
-        public ResetScaleOnEndListener(AView target)
-        {
-            _target = target;
-        }
-
-        public override void OnAnimationEnd(Animator? animation)
-        {
-            _target.ScaleX = 1f;
-            _target.ScaleY = 1f;
-        }
     }
 
     private sealed class SelectionLayoutListener : Java.Lang.Object, AView.IOnLayoutChangeListener
@@ -300,16 +316,8 @@ public class CustomShellItemRenderer : ShellItemRenderer
             _state = state;
         }
 
-        public void OnLayoutChange(
-            AView v,
-            int left,
-            int top,
-            int right,
-            int bottom,
-            int oldLeft,
-            int oldTop,
-            int oldRight,
-            int oldBottom)
+        public void OnLayoutChange(AView v, int left, int top, int right, int bottom,
+            int oldLeft, int oldTop, int oldRight, int oldBottom)
         {
             var width = _state.BackgroundView.Width;
             var height = _state.BackgroundView.Height;
@@ -340,10 +348,7 @@ public class CustomShellItemRenderer : ShellItemRenderer
     private AColor GetSelectedItemBackground()
     {
         var tabBarColor = Microsoft.Maui.Controls.Shell.GetTabBarBackgroundColor(ShellItem);
-        var baseColor = tabBarColor == null
-            ? ShellRenderer.DefaultBackgroundColor
-            : tabBarColor;
-
+        var baseColor = tabBarColor ?? ShellRenderer.DefaultBackgroundColor;
         var platformColor = baseColor.ToPlatform();
         var tinted = AColor.Argb(220, platformColor.R, platformColor.G, platformColor.B);
         return Lighten(tinted, SelectedLightenFactor);

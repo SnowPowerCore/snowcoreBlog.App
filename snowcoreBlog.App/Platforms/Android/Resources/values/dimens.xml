@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+  <!-- Legacy Design library names (Xamarin-era) -->
+  <dimen name="design_bottom_navigation_text_size" tools:override="true">12sp</dimen>
+  <dimen name="design_bottom_navigation_active_text_size" tools:override="true">12sp</dimen>
+
+  <!-- Material Components (M2) names used by BottomNavigationView -->
+  <dimen name="mtrl_bottom_nav_text_size" tools:override="true">12sp</dimen>
+  <dimen name="mtrl_bottom_nav_active_text_size" tools:override="true">12sp</dimen>
+
+  <!-- Material NavigationBarView (newer M2/M3 path) -->
+  <dimen name="mtrl_navigation_bar_item_text_size" tools:override="true">12sp</dimen>
+
+  <!-- Optional: nuke the “active indicator” pill (purely visual) -->
+  <dimen name="mtrl_navigation_bar_item_active_indicator_height" tools:override="true">0dp</dimen>
+  <dimen name="mtrl_navigation_bar_item_active_indicator_width" tools:override="true">0dp</dimen>
+
+</resources>

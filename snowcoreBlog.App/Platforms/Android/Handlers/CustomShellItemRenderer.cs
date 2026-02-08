@@ -198,19 +198,22 @@ public class CustomShellItemRenderer : ShellItemRenderer
             }
 
             // Create and register selection state so we can control initial visibility
-            var state = new SelectionState(itemView, backgroundItemView);
-            _selectionStates.Add(itemView, state);
-
-            // Initialize selection based on the menu item's checked state so only
-            // the selected tab's background is visible at app start.
-            var isChecked = bottomView.Menu?.GetItem(i)?.IsChecked == true;
-            state.IsSelected = isChecked;
-            SetSelectionScale(backgroundItemView, isChecked);
-
-            var listener = new SelectionLayoutListener(state);
-            itemView.AddOnLayoutChangeListener(listener);
-            state.Listener = listener;
+            InitSelectionState(itemView, backgroundItemView, bottomView.Menu.GetItem(i)?.IsChecked == true);
         }
+    }
+
+    private void InitSelectionState(ViewGroup itemView, ImageView backgroundItemView, bool currentlySelected)
+    {
+        var state = new SelectionState(itemView, backgroundItemView);
+        _selectionStates.Add(itemView, state);
+
+        var isChecked = currentlySelected;
+        state.IsSelected = isChecked;
+        SetSelectionScale(backgroundItemView, isChecked);
+
+        var listener = new SelectionLayoutListener(state);
+        itemView.AddOnLayoutChangeListener(listener);
+        state.Listener = listener;
     }
 
     private static LinearLayout? CreateCustomItemContent(BottomNavigationView bottomView, int index, DisplayMetrics metrics)
@@ -319,34 +322,12 @@ public class CustomShellItemRenderer : ShellItemRenderer
             if (animate)
             {
                 AnimateSelection(state.BackgroundView, isSelected);
+                AnimateAlpha(state.BackgroundView, isSelected);
             }
             else
             {
                 SetSelectionScale(state.BackgroundView, isSelected);
-            }
-
-            // Also show/hide the debug backgroundItemView (if present) when selection changes
-            try
-            {
-                var tag = ItemBackgroundTag;
-                if (state.ItemView.FindViewWithTag(tag) is ImageView bgItem)
-                {
-                    if (animate)
-                    {
-                        var targetAlpha = isSelected ? 1f : 0f;
-                        var dur = isSelected ? SelectDurationMs : DeselectDurationMs;
-                        var interp = isSelected ? SelectInterpolator : DeselectInterpolator;
-                        bgItem.Animate()?.WithLayer()?.Alpha(targetAlpha).SetDuration(dur).SetInterpolator(interp).SetListener(null);
-                    }
-                    else
-                    {
-                        bgItem.Alpha = isSelected ? 1f : 0f;
-                    }
-                }
-            }
-            catch
-            {
-                // ignore animation errors
+                SetSelectionAlpha(state.BackgroundView, isSelected);
             }
         }
         else if (lastSelected == null)
@@ -389,6 +370,23 @@ public class CustomShellItemRenderer : ShellItemRenderer
             }));
     }
 
+    private static void AnimateAlpha(AView backgroundView, bool isSelected)
+    {
+        var targetAlpha = isSelected ? 1f : 0f;
+        var duration = isSelected ? SelectDurationMs : DeselectDurationMs;
+        var interpolator = isSelected ? SelectInterpolator : DeselectInterpolator;
+        
+        var animator = backgroundView.Animate();
+        if (animator == null)
+            return;
+
+        animator?.WithLayer()?
+            .Alpha(targetAlpha)
+            .SetDuration(duration)
+            .SetInterpolator(interpolator)
+            .SetListener(null);
+    }
+
     private static void SetSelectionScale(AView backgroundView, bool isSelected)
     {
         if (isSelected)
@@ -403,6 +401,11 @@ public class CustomShellItemRenderer : ShellItemRenderer
             backgroundView.ScaleY = MinScaleY;
             backgroundView.Alpha = 0f;
         }
+    }
+
+    private static void SetSelectionAlpha(AView backgroundView, bool isSelected)
+    {
+        backgroundView.Alpha = isSelected ? 1f : 0f;
     }
 
     private sealed class AnimationEndListener : Java.Lang.Object, global::Android.Animation.Animator.IAnimatorListener

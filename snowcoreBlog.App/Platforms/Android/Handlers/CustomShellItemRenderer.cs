@@ -1,18 +1,18 @@
+using System.Runtime.CompilerServices;
 using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Util;
 using Android.Views;
 using Android.Views.Animations;
-using System.Runtime.CompilerServices;
 using Android.Widget;
 using Google.Android.Material.BottomNavigation;
 using Microsoft.Maui.Controls.Handlers.Compatibility;
 using Microsoft.Maui.Controls.Platform.Compatibility;
 using Microsoft.Maui.Platform;
 using AColor = Android.Graphics.Color;
+using AndroidContent = Android.Content;
 using AResource = Android.Resource;
 using AView = Android.Views.View;
-using AndroidContent = Android.Content;
 
 namespace snowcoreBlog.App.Platforms.Android.Handlers;
 
@@ -365,7 +365,6 @@ public class CustomShellItemRenderer : ShellItemRenderer
             .SetInterpolator(interpolator)
             .SetListener(new AnimationEndListener(() =>
             {
-                // Ensure consistent final state after animation
                 SetSelectionScale(backgroundView, isSelected);
             }));
     }
@@ -384,7 +383,10 @@ public class CustomShellItemRenderer : ShellItemRenderer
             .Alpha(targetAlpha)
             .SetDuration(duration)
             .SetInterpolator(interpolator)
-            .SetListener(null);
+            .SetListener(new AnimationEndListener(() =>
+            {
+                SetSelectionAlpha(backgroundView, isSelected);
+            }));
     }
 
     private static void SetSelectionScale(AView backgroundView, bool isSelected)
@@ -445,32 +447,6 @@ public class CustomShellItemRenderer : ShellItemRenderer
         public AView BackgroundView { get; } = backgroundView;
         public bool? IsSelected { get; set; }
         public SelectionLayoutListener? Listener { get; set; }
-    }
-
-    private sealed class SelectionBackgroundView : AView
-    {
-        public SelectionBackgroundView(AndroidContent.Context context) : base(context)
-        {
-        }
-
-        public SelectionState? OwnerState { get; set; }
-
-        protected override void DrawableStateChanged()
-        {
-            base.DrawableStateChanged();
-
-            try
-            {
-                if (OwnerState != null)
-                {
-                    UpdateSelectionState(OwnerState, animate: true);
-                }
-            }
-            catch
-            {
-                // ignore any unexpected issues during state propagation
-            }
-        }
     }
 
     private AColor GetSelectedItemBackground()

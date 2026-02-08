@@ -81,7 +81,6 @@
 			<DependentUpon>appsettings.json</DependentUpon>
 		</EmbeddedResource>
 		<Localize Include="Resources\Raw\Translations\TranslationResources_*.json" NamespaceName="snowcoreBlog.App.Resources" ClassName="TranslationResources" NeutralCulture="en" />
-		<AndroidResource Remove="Platforms\Android\Resources\values\dimens.xml" />
 		<ProjectReference Include="..\..\..\NaluReactorNavigation\Nalu.Reactor.Navigation\Nalu.Reactor.Navigation.csproj" />
 		<Compile Update="**\*.state.cs">
 			<DependentUpon>$([System.String]::Copy('%(Filename)').Replace('.state','.cs'))</DependentUpon>

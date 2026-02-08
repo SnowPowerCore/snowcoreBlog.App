@@ -19,20 +19,19 @@ namespace snowcoreBlog.App.Platforms.Android.Handlers;
 public class CustomShellItemRenderer : ShellItemRenderer
 {
     private const float InitialMarginDp = 12f;
-    private const float ItemInsetDp = 2.6f;
+    private const float ItemInsetDp = 3.5f;
     private const float ItemCornerRadiusDp = 15f;
     private const float SelectedLightenFactor = 0.15f;
     private const float MinScaleX = 0.75f;
     private const float MinScaleY = 0.9f;
-    private const long SelectDurationMs = 240;
-    private const long DeselectDurationMs = 120;
+    private const long SelectDurationMs = 360;
+    private const long DeselectDurationMs = 200;
     private const string ItemBackgroundTag = "TabItemBackground";
     private const string ItemContentTag = "TabItemContent";
     private static readonly IInterpolator SelectInterpolator = new PathInterpolator(0.2f, 0f, 0f, 1f);
     private static readonly IInterpolator DeselectInterpolator = new PathInterpolator(0.3f, 0f, 0.2f, 1f);
-    private readonly ConditionalWeakTable<AView, SelectionState> _selectionStates = new();
+    private readonly ConditionalWeakTable<AView, SelectionState> _selectionStates = [];
     private Drawable.ConstantState? _selectedItemState;
-    private Drawable.ConstantState? _unselectedItemState;
     private int _cachedSelectedArgb;
     private int _cachedInsetPx;
     private float _cachedCornerRadiusPx;
@@ -44,7 +43,7 @@ public class CustomShellItemRenderer : ShellItemRenderer
         var root = base.OnCreateView(inflater, container, savedInstanceState);
         if (root == null)
         {
-            return new FrameLayout(container?.Context ?? inflater.Context);
+            return new FrameLayout(container?.Context ?? inflater.Context!);
         }
 
         if (root is ViewGroup rootGroup)
@@ -172,19 +171,6 @@ public class CustomShellItemRenderer : ShellItemRenderer
 
             var selectedDrawable = _selectedItemState?.NewDrawable()?.Mutate() as GradientDrawable
                 ?? new GradientDrawable();
-            var unselectedDrawable = _unselectedItemState?.NewDrawable()?.Mutate() as GradientDrawable
-                ?? new GradientDrawable();
-
-            var stateList = new StateListDrawable();
-            stateList.AddState([AResource.Attribute.StateChecked], new InsetDrawable(selectedDrawable, _cachedInsetPx));
-            stateList.AddState([-AResource.Attribute.StateChecked], new InsetDrawable(unselectedDrawable, _cachedInsetPx));
-
-            var backgroundView = new AView(context)
-            {
-                DuplicateParentStateEnabled = true,
-                Tag = ItemBackgroundTag,
-                Background = stateList
-            };
 
             var layoutParams = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
@@ -196,9 +182,14 @@ public class CustomShellItemRenderer : ShellItemRenderer
                 BottomMargin = _cachedInsetPx
             };
 
-            itemView.SetClipToPadding(false);
-            itemView.SetClipChildren(false);
-            itemView.AddView(backgroundView, 0, layoutParams);
+            var backgroundItemView = new ImageView(context)
+            {
+                DuplicateParentStateEnabled = true,
+                Tag = ItemBackgroundTag
+            };
+            backgroundItemView.SetImageDrawable(selectedDrawable);
+            backgroundItemView.Alpha = 1f;
+            itemView.AddView(backgroundItemView, 0, layoutParams);
 
             var contentView = CreateCustomItemContent(bottomView, i, metrics);
             if (contentView != null)
@@ -206,7 +197,19 @@ public class CustomShellItemRenderer : ShellItemRenderer
                 itemView.AddView(contentView);
             }
 
-            EnsureSelectionAnimator(itemView, backgroundView);
+            // Create and register selection state so we can control initial visibility
+            var state = new SelectionState(itemView, backgroundItemView);
+            _selectionStates.Add(itemView, state);
+
+            // Initialize selection based on the menu item's checked state so only
+            // the selected tab's background is visible at app start.
+            var isChecked = bottomView.Menu?.GetItem(i)?.IsChecked == true;
+            state.IsSelected = isChecked;
+            SetSelectionScale(backgroundItemView, isChecked);
+
+            var listener = new SelectionLayoutListener(state);
+            itemView.AddOnLayoutChangeListener(listener);
+            state.Listener = listener;
         }
     }
 
@@ -225,6 +228,10 @@ public class CustomShellItemRenderer : ShellItemRenderer
         }
 
         var menuItem = menu.GetItem(index);
+        if (menuItem == null)
+        {
+            return null;
+        }
         var iconSizePx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, 24f, metrics);
         var labelMarginPx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, 2f, metrics);
 
@@ -240,7 +247,9 @@ public class CustomShellItemRenderer : ShellItemRenderer
             ViewGroup.LayoutParams.MatchParent);
 
         var iconView = new ImageView(context);
-        iconView.SetImageDrawable(menuItem.Icon);
+        var iconDrawable = menuItem.Icon;
+        if (iconDrawable != null)
+            iconView.SetImageDrawable(iconDrawable);
         iconView.DuplicateParentStateEnabled = true;
         iconView.ImageTintList = bottomView.ItemIconTintList;
         iconView.LayoutParameters = new LinearLayout.LayoutParams(iconSizePx, iconSizePx)
@@ -277,7 +286,6 @@ public class CustomShellItemRenderer : ShellItemRenderer
         var selectedArgb = selectedColor.ToArgb();
 
         if (_selectedItemState != null
-            && _unselectedItemState != null
             && _cachedInsetPx == insetPx
             && Math.Abs(_cachedCornerRadiusPx - cornerRadiusPx) < 0.5f
             && _cachedSelectedArgb == selectedArgb)
@@ -294,27 +302,9 @@ public class CustomShellItemRenderer : ShellItemRenderer
         unselectedDrawable.SetCornerRadius(cornerRadiusPx);
 
         _selectedItemState = selectedDrawable.GetConstantState();
-        _unselectedItemState = unselectedDrawable.GetConstantState();
         _cachedInsetPx = insetPx;
         _cachedCornerRadiusPx = cornerRadiusPx;
         _cachedSelectedArgb = selectedArgb;
-    }
-
-    private void EnsureSelectionAnimator(ViewGroup itemView, AView backgroundView)
-    {
-        if (_selectionStates.TryGetValue(itemView, out _))
-        {
-            return;
-        }
-
-        var state = new SelectionState(itemView, backgroundView);
-        _selectionStates.Add(itemView, state);
-
-        UpdateSelectionState(state, animate: false);
-
-        var listener = new SelectionLayoutListener(state);
-        itemView.AddOnLayoutChangeListener(listener);
-        state.Listener = listener;
     }
 
     private static void UpdateSelectionState(SelectionState state, bool animate)
@@ -334,6 +324,30 @@ public class CustomShellItemRenderer : ShellItemRenderer
             {
                 SetSelectionScale(state.BackgroundView, isSelected);
             }
+
+            // Also show/hide the debug backgroundItemView (if present) when selection changes
+            try
+            {
+                var tag = ItemBackgroundTag;
+                if (state.ItemView.FindViewWithTag(tag) is ImageView bgItem)
+                {
+                    if (animate)
+                    {
+                        var targetAlpha = isSelected ? 1f : 0f;
+                        var dur = isSelected ? SelectDurationMs : DeselectDurationMs;
+                        var interp = isSelected ? SelectInterpolator : DeselectInterpolator;
+                        bgItem.Animate()?.WithLayer()?.Alpha(targetAlpha).SetDuration(dur).SetInterpolator(interp).SetListener(null);
+                    }
+                    else
+                    {
+                        bgItem.Alpha = isSelected ? 1f : 0f;
+                    }
+                }
+            }
+            catch
+            {
+                // ignore animation errors
+            }
         }
         else if (lastSelected == null)
         {
@@ -343,45 +357,71 @@ public class CustomShellItemRenderer : ShellItemRenderer
 
     private static void AnimateSelection(AView backgroundView, bool isSelected)
     {
-        var targetScale = isSelected ? 1f : MinScaleX;
+        var targetScaleX = isSelected ? 1f : MinScaleX;
+        var targetScaleY = isSelected ? 1f : MinScaleY;
         var duration = isSelected ? SelectDurationMs : DeselectDurationMs;
         var interpolator = isSelected ? SelectInterpolator : DeselectInterpolator;
 
         var animator = backgroundView.Animate();
         if (animator == null)
-        {
             return;
-        }
 
         animator.Cancel();
-        backgroundView.Alpha = isSelected ? 1f : 0f;
+
         if (isSelected)
         {
+            // start from small & invisible
             backgroundView.ScaleX = MinScaleX;
             backgroundView.ScaleY = MinScaleY;
+            backgroundView.Alpha = 0f;
         }
 
-        animator
-            .WithLayer()
-            .ScaleX(targetScale)
-            .ScaleY(targetScale)
+        animator.WithLayer()
+            .ScaleX(targetScaleX)
+            .ScaleY(targetScaleY)
+            .Alpha(isSelected ? 1f : 0f)
             .SetDuration(duration)
             .SetInterpolator(interpolator)
-            .SetListener(null);
+            .SetListener(new AnimationEndListener(() =>
+            {
+                // Ensure consistent final state after animation
+                SetSelectionScale(backgroundView, isSelected);
+            }));
     }
 
     private static void SetSelectionScale(AView backgroundView, bool isSelected)
     {
-        backgroundView.ScaleX = 1f;
-        backgroundView.ScaleY = 1f;
-        backgroundView.Alpha = isSelected ? 1f : 0f;
+        if (isSelected)
+        {
+            backgroundView.ScaleX = 1f;
+            backgroundView.ScaleY = 1f;
+            backgroundView.Alpha = 1f;
+        }
+        else
+        {
+            backgroundView.ScaleX = MinScaleX;
+            backgroundView.ScaleY = MinScaleY;
+            backgroundView.Alpha = 0f;
+        }
+    }
+
+    private sealed class AnimationEndListener : Java.Lang.Object, global::Android.Animation.Animator.IAnimatorListener
+    {
+        private readonly Action _onEnd;
+
+        public AnimationEndListener(Action onEnd) => _onEnd = onEnd;
+
+        public void OnAnimationCancel(global::Android.Animation.Animator animation) { }
+        public void OnAnimationEnd(global::Android.Animation.Animator animation) => _onEnd?.Invoke();
+        public void OnAnimationRepeat(global::Android.Animation.Animator animation) { }
+        public void OnAnimationStart(global::Android.Animation.Animator animation) { }
     }
 
     private sealed class SelectionLayoutListener(SelectionState state) : Java.Lang.Object, AView.IOnLayoutChangeListener
     {
         private readonly SelectionState _state = state;
 
-        public void OnLayoutChange(AView v, int left, int top, int right, int bottom,
+        public void OnLayoutChange(AView? v, int left, int top, int right, int bottom,
             int oldLeft, int oldTop, int oldRight, int oldBottom)
         {
             var width = _state.BackgroundView.Width;
@@ -402,6 +442,32 @@ public class CustomShellItemRenderer : ShellItemRenderer
         public AView BackgroundView { get; } = backgroundView;
         public bool? IsSelected { get; set; }
         public SelectionLayoutListener? Listener { get; set; }
+    }
+
+    private sealed class SelectionBackgroundView : AView
+    {
+        public SelectionBackgroundView(AndroidContent.Context context) : base(context)
+        {
+        }
+
+        public SelectionState? OwnerState { get; set; }
+
+        protected override void DrawableStateChanged()
+        {
+            base.DrawableStateChanged();
+
+            try
+            {
+                if (OwnerState != null)
+                {
+                    UpdateSelectionState(OwnerState, animate: true);
+                }
+            }
+            catch
+            {
+                // ignore any unexpected issues during state propagation
+            }
+        }
     }
 
     private AColor GetSelectedItemBackground()

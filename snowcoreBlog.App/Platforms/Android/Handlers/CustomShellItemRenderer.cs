@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Android.Graphics.Drawables;
+using Android.Graphics;
 using Android.OS;
 using Android.Util;
 using Android.Views;
@@ -13,6 +14,9 @@ using AColor = Android.Graphics.Color;
 using AndroidContent = Android.Content;
 using AResource = Android.Resource;
 using AView = Android.Views.View;
+using Xamarin.Android.BlurView;
+using Xamarin.Android.BlurView.Renders;
+using Xamarin.Android.BlurView.Interfaces;
 
 namespace snowcoreBlog.App.Platforms.Android.Handlers;
 
@@ -97,6 +101,75 @@ public class CustomShellItemRenderer : ShellItemRenderer
             new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.MatchParent));
+
+        // Add a realtime blur view behind the bottom navigation to create a backdrop effect
+        try
+        {
+            var metrics = root.Context?.Resources?.DisplayMetrics
+                          ?? root.Context?.ApplicationContext?.Resources?.DisplayMetrics;
+            if (metrics == null)
+            {
+                // fallback: add nothing
+            }
+            else
+            {
+                var marginPx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, InitialMarginDp, metrics);
+                var cornerRadiusPx = TypedValue.ApplyDimension(ComplexUnitType.Dip, ItemCornerRadiusDp+5, metrics);
+
+                var blurView = new BlurView(root.Context)
+                {
+                    DuplicateParentStateEnabled = true,
+                    Tag = "BottomBarBlur"
+                };
+
+                // Apply a rounded outline and enable clipping so the blur has rounded corners
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
+                {
+                    blurView.OutlineProvider = new RoundedOutlineProvider(cornerRadiusPx);
+                    blurView.ClipToOutline = true;
+                }
+
+                IBlurAlgorithm blurAlgorithm = Build.VERSION.SdkInt >= BuildVersionCodes.S
+                    ? new RenderEffectBlur()
+                    : new RenderScriptBlur(root.Context);
+
+                blurView.SetupWith(navigationArea, blurAlgorithm)
+                    .SetOverlayColor(AColor.Argb(24, 255, 255, 255).ToArgb())
+                    .SetBlurRadius(4f);
+
+                var lp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent, GravityFlags.Bottom)
+                {
+                    LeftMargin = marginPx + marginPx,
+                    TopMargin = marginPx,
+                    RightMargin = marginPx + marginPx,
+                    BottomMargin = marginPx
+                };
+
+                overlay.AddView(blurView, lp);
+
+                // After the bottom view is measured, set the blur height to match it exactly
+                bottomView.Post(() =>
+                {
+                    try
+                    {
+                        var height = bottomView.Height > 0 ? bottomView.Height : bottomView.MeasuredHeight;
+                        if (height > 0)
+                        {
+                            var currentLp = blurView.LayoutParameters as FrameLayout.LayoutParams ?? lp;
+                            currentLp.Height = height;
+                            currentLp.Gravity = GravityFlags.Bottom;
+                            blurView.LayoutParameters = currentLp;
+                            blurView.RequestLayout();
+                        }
+                    }
+                    catch { }
+                });
+            }
+        }
+        catch (Exception)
+        {
+            // If blur can't be created for any reason, silently continue without crashing.
+        }
         overlay.AddView(
             bottomView,
             new FrameLayout.LayoutParams(
@@ -447,6 +520,26 @@ public class CustomShellItemRenderer : ShellItemRenderer
         public AView BackgroundView { get; } = backgroundView;
         public bool? IsSelected { get; set; }
         public SelectionLayoutListener? Listener { get; set; }
+    }
+
+    private sealed class RoundedOutlineProvider : ViewOutlineProvider
+    {
+        private readonly float _radius;
+
+        public RoundedOutlineProvider(float radius) => _radius = radius;
+
+        public override void GetOutline(AView view, Outline outline)
+        {
+            var width = view.Width;
+            var height = view.Height;
+            if (width <= 0 || height <= 0)
+            {
+                outline.SetEmpty();
+                return;
+            }
+
+            outline.SetRoundRect(0, 0, width, height, _radius);
+        }
     }
 
     private AColor GetSelectedItemBackground()

@@ -70,6 +70,10 @@
     	<PackageReference Include="kli.Localize" Version="2.0.4" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)'=='net9.0-android'">
+		<PackageReference Include="Xamarin.Android.BlurView" Version="1.0.1" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<None Remove="appsettings.json" />
 		<EmbeddedResource Include="appsettings.json">

@@ -76,7 +76,7 @@ public sealed class CustomShellBottomNavViewAppearanceTracker : ShellBottomNavVi
 
 		var baseColor = backgroundColor ?? ShellRenderer.DefaultBackgroundColor;
 		var platformColor = baseColor.ToPlatform();
-		var tinted = AColor.Rgb(platformColor.R, platformColor.G, platformColor.B);
+		var tinted = AColor.Argb(240, platformColor.R, platformColor.G, platformColor.B);
 
 		var background = new GradientDrawable();
 		background.SetColor(tinted);

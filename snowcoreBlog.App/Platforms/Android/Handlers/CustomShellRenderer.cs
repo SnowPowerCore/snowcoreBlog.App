@@ -12,6 +12,7 @@ using AColor = Android.Graphics.Color;
 using AResource = Android.Resource;
 using MauiColor = Microsoft.Maui.Graphics.Color;
 using ShellItem = Microsoft.Maui.Controls.ShellItem;
+using ShellSection = Microsoft.Maui.Controls.ShellSection;
 
 namespace snowcoreBlog.App.Platforms.Android.Handlers;
 
@@ -26,6 +27,11 @@ public class CustomShellRenderer : ShellRenderer
 	{
 		return new CustomShellBottomNavViewAppearanceTracker(this, shellItem);
 	}
+	
+	protected override IShellSectionRenderer CreateShellSectionRenderer(ShellSection shellSection)
+    {
+        return new CustomShellSectionRenderer(this);
+    }
 }
 
 public sealed class CustomShellBottomNavViewAppearanceTracker : ShellBottomNavViewAppearanceTracker
@@ -33,9 +39,8 @@ public sealed class CustomShellBottomNavViewAppearanceTracker : ShellBottomNavVi
 	private const float CornerRadiusDp = 18f;
 	private const float MarginDp = 12f;
 	private const float ElevationDp = 4f;
-	private const byte BackgroundAlpha = 220;
 
-	public CustomShellBottomNavViewAppearanceTracker(IShellContext shellContext, ShellItem shellItem)
+    public CustomShellBottomNavViewAppearanceTracker(IShellContext shellContext, ShellItem shellItem)
 		: base(shellContext, shellItem)
 	{
 	}
@@ -74,7 +79,7 @@ public sealed class CustomShellBottomNavViewAppearanceTracker : ShellBottomNavVi
 
 		var baseColor = backgroundColor ?? ShellRenderer.DefaultBackgroundColor;
 		var platformColor = baseColor.ToPlatform();
-		var tinted = AColor.Argb(BackgroundAlpha, platformColor.R, platformColor.G, platformColor.B);
+		var tinted = AColor.Rgb(platformColor.R, platformColor.G, platformColor.B);
 
 		var background = new GradientDrawable();
 		background.SetColor(tinted);

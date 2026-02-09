@@ -20,7 +20,7 @@ public class CustomShellItemRenderer : ShellItemRenderer
 {
     private const float InitialMarginDp = 12f;
     private const float ItemInsetDp = 3.5f;
-    private const float ItemCornerRadiusDp = 15f;
+    private const float ItemCornerRadiusDp = 23f;
     private const float SelectedLightenFactor = 0.15f;
     private const float MinScaleX = 0.75f;
     private const float MinScaleY = 0.9f;

@@ -36,14 +36,11 @@ public class CustomShellRenderer : ShellRenderer
 
 public sealed class CustomShellBottomNavViewAppearanceTracker : ShellBottomNavViewAppearanceTracker
 {
-	private const float CornerRadiusDp = 18f;
+	private const float CornerRadiusDp = 26f;
 	private const float MarginDp = 12f;
 	private const float ElevationDp = 4f;
 
-    public CustomShellBottomNavViewAppearanceTracker(IShellContext shellContext, ShellItem shellItem)
-		: base(shellContext, shellItem)
-	{
-	}
+    public CustomShellBottomNavViewAppearanceTracker(IShellContext shellContext, ShellItem shellItem) : base(shellContext, shellItem) { }
 
 	public override void SetAppearance(BottomNavigationView bottomView, IShellAppearanceElement appearance)
 	{

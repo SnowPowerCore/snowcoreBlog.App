@@ -1,12 +1,12 @@
 ﻿using Nalu;
 
-namespace snowcoreBlog.App.Features.Settings;
+namespace snowcoreBlog.App.Features.TabTwo;
 
 public partial class TabTwoPage : Component, IAppearingAware, IDisposable
 {
     private bool _disposed = false;
 
-    public override VisualNode Render() => ContentPage().Title("Tab Two");
+    public override VisualNode Render() => CustomContentPage("Tab Two");
         
     public ValueTask OnAppearingAsync()
     {

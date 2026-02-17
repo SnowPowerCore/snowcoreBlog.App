@@ -16,7 +16,7 @@ public partial class HomePage : Component<HomePageState, HomePageProps>, IAppear
     private readonly INavigationService _navigation;
 
     public override VisualNode Render() =>
-        ContentPage(
+        CustomContentPage(title: TranslationResources.HomeShellTitle, children:
             ScrollView(
                 VStack(
                     CachedImage(TranslationResources.DotNetBotImgSrc)
@@ -32,6 +32,14 @@ public partial class HomePage : Component<HomePageState, HomePageProps>, IAppear
                     Label(TranslationResources.SubheaderText)
                         .ThemeKey(ApplicationTheme.H3)
                         .HCenter(),
+
+                    Label("What the hell is lorem ipsum?")
+                        .FontSize(24)
+                        .LineHeight(1.5),
+
+                    Label("For those of you not of a design disposition, lorem ipsum is dummy text used as a placeholder for the real text of a website or other mockup during the design process. Although it may look like Latin, it’s actually just gibberish designed to be ignored. Any time you see lorem ipsum, just think “real text will be here eventually”. It looks like this "),
+
+                    Label("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exercitation ullam corper suscipit lobortis nisl ut aliquip ex ea commodo consequat."),
 
                     ButtonKit(State.Counter == 0
                                 ? () => TranslationResources.ButtonStaticText
@@ -71,7 +79,8 @@ public partial class HomePage : Component<HomePageState, HomePageProps>, IAppear
                 )
                 .VCenter()
                 .Spacing(25)
-                .Padding(30, 0)
+                .Padding(30, 0, 30, 60)
+                .PadBottom()
             )
         );
 

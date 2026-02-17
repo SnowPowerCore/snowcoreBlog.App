@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Logging;
 using snowcoreBlog.App.Services.Background;
-using System;
-using System.Threading;
 
 namespace snowcoreBlog.App.Platforms.Windows.Services;
 

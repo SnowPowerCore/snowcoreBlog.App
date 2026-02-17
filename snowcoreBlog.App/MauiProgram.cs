@@ -6,10 +6,13 @@ using snowcoreBlog.App.Platforms.Android.Handlers;
 #endif
 using Plugin.Maui.BottomSheet.Hosting;
 using ReactorTheme;
+using snowcoreBlog.App.Extensions;
 using snowcoreBlog.App.Features.BlogAppShell;
 using snowcoreBlog.App.Features.Home;
 using snowcoreBlog.App.Features.Second;
 using snowcoreBlog.App.Features.Settings;
+using snowcoreBlog.App.Features.TabThree;
+using snowcoreBlog.App.Features.TabTwo;
 using snowcoreBlog.App.Features.Third;
 using snowcoreBlog.App.Resources.Styles;
 using snowcoreBlog.App.Services.Background;
@@ -32,12 +35,13 @@ public static class MauiProgram
             })
             .UseReactorThemeFonts()
             .UseMauiCommunityToolkit()
+            .UseInsets()
             .UseBottomSheet()
             .UseFFImageLoading()
             .ConfigureMauiHandlers(handlers =>
             {
 #if ANDROID
-                handlers.AddHandler<Microsoft.Maui.Controls.Shell, CustomShellRenderer>();
+                handlers.AddHandler<Microsoft.Maui.Controls.Shell, CustomShellRenderer2>();
 #endif
             })
             .ConfigureFonts(static fonts =>
@@ -74,13 +78,13 @@ public static class MauiProgram
 
         // Register platform-specific background service
 #if ANDROID
-        builder.Services.AddSingleton<IPlatformBackgroundService, snowcoreBlog.App.Platforms.Android.Services.AndroidPlatformBackgroundService>();
+        builder.Services.AddSingleton<IPlatformBackgroundService, Platforms.Android.Services.AndroidPlatformBackgroundService>();
 #elif IOS
         builder.Services.AddSingleton<IPlatformBackgroundService, Platforms.iOS.Services.iOSPlatformBackgroundService>();
 #elif MACCATALYST
-        builder.Services.AddSingleton<IPlatformBackgroundService, snowcoreBlog.App.Platforms.MacCatalyst.Services.MacCatalystPlatformBackgroundService>();
+        builder.Services.AddSingleton<IPlatformBackgroundService, Platforms.MacCatalyst.Services.MacCatalystPlatformBackgroundService>();
 #elif WINDOWS
-        builder.Services.AddSingleton<IPlatformBackgroundService, snowcoreBlog.App.Platforms.Windows.Services.WindowsPlatformBackgroundService>();
+        builder.Services.AddSingleton<IPlatformBackgroundService, Platforms.Windows.Services.WindowsPlatformBackgroundService>();
 #endif
 
         // Register the main background service

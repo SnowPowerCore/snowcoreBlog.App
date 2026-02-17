@@ -1,6 +1,6 @@
 namespace snowcoreBlog.App.Features.Shared;
 
-public class TestSheetContent : Component
+public partial class TestSheetContent : Component
 {
     protected override void OnMounted()
     {

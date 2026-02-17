@@ -12,7 +12,7 @@ public partial class SecondPage : ComponentWithProps<SecondPageProps>, IAppearin
     private readonly INavigationServiceProvider _navigationServiceProvider;
 
     public override VisualNode Render() =>
-        ContentPage(
+        CustomContentPage(TranslationResources.SecondPageTitle, children:
             VStack(
                 ButtonKit(() => TranslationResources.GoToFirstPageText)
                     .HorizontalOptions(LayoutOptions.Center)
@@ -24,9 +24,7 @@ public partial class SecondPage : ComponentWithProps<SecondPageProps>, IAppearin
                     .OnClicked(NavigateToThirdPageAsync)
             )
             .VCenter()
-        )
-        .BackgroundColor(Colors.Red)
-        .Title(TranslationResources.SecondPageTitle);
+        );
 
     public SecondPage(INavigationService navigation, INavigationServiceProvider navigationServiceProvider)
     {

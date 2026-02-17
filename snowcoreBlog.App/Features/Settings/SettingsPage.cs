@@ -11,12 +11,11 @@ public partial class SettingsPage : Component, IAppearingAware, IDisposable
     private readonly INavigationService _navigation;
 
     public override VisualNode Render() =>
-        ContentPage(
+        CustomContentPage(title: TranslationResources.SettingsPageTitle, children:
             ButtonKit(() => TranslationResources.GoToRootPageText)
                 .ThemeKey(ApplicationTheme.Primary)
                 .OnClicked(NavigateToRootAsync)
-        )
-        .Title(TranslationResources.SettingsPageTitle);
+        );
         
     public ValueTask OnAppearingAsync()
     {

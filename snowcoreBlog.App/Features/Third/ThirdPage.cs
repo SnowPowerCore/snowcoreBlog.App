@@ -16,7 +16,7 @@ public partial class ThirdPage : Component, IAppearingAware, ILeavingGuard, IDis
     private readonly IBottomSheetNavigationService _bottomSheetNavigation;
 
     public override VisualNode Render() =>
-        ContentPage(
+        CustomContentPage(TranslationResources.SecondPageTitle, children:
             VStack(
                 VStack(
                     ButtonKit(() => TranslationResources.GoToFirstPageText)
@@ -31,9 +31,7 @@ public partial class ThirdPage : Component, IAppearingAware, ILeavingGuard, IDis
                 .VCenter(),
                 BottomSheet()
             )
-        )
-        .BackgroundColor(Colors.Red)
-        .Title(TranslationResources.SecondPageTitle);
+        );
 
     public ThirdPage(INavigationService navigation, IBottomSheetNavigationService bottomSheetNavigation)
     {
@@ -63,7 +61,7 @@ public partial class ThirdPage : Component, IAppearingAware, ILeavingGuard, IDis
         return sheetHeader;
     }
 
-    private Microsoft.Maui.Controls.Border SheetHandle()
+    private MauiControls.Border SheetHandle()
     {
         return new()
         {
@@ -71,12 +69,12 @@ public partial class ThirdPage : Component, IAppearingAware, ILeavingGuard, IDis
             Margin = new(0, 10, 0, 10),
             WidthRequest = 40,
             HeightRequest = 7.5,
-            Content = new Microsoft.Maui.Controls.BoxView()
+            Content = new MauiControls.BoxView()
             {
                 WidthRequest = 40,
                 Color = Colors.Orange,
             },
-            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle()
+            StrokeShape = new MauiControls.Shapes.RoundRectangle()
             {
                 CornerRadius = new(20),
             },

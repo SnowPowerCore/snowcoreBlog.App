@@ -1,8 +1,7 @@
 using BackgroundTasks;
-using Foundation;
-using UIKit;
 using Microsoft.Extensions.Logging;
 using snowcoreBlog.App.Services.Background;
+using UIKit;
 
 namespace snowcoreBlog.App.Platforms.iOS.Services;
 

@@ -72,7 +72,7 @@ public class InternalCustomApplicationTheme : ApplicationTheme
             .MinimumHeightRequest(44)
             .MinimumWidthRequest(44)
             .VisualState("CommonStates", "Disable", MauiControls.Button.TextColorProperty, IsLightTheme ? Gray950 : Gray200)
-            .VisualState("CommonStates", "Disable", MauiControls.Button.BackgroundColorProperty, IsLightTheme ? Gray200 : Gray600);
+            .VisualState("CommonStates", "Disable", VisualElement.BackgroundColorProperty, IsLightTheme ? Gray200 : Gray600);
 
         CheckBoxStyles.Default = _ => _
             .Color(IsLightTheme ? PrimaryColor : White)
@@ -124,7 +124,7 @@ public class InternalCustomApplicationTheme : ApplicationTheme
             .CornerRadius(0)
             .MinimumHeightRequest(44)
             .MinimumWidthRequest(44)
-            .VisualState("CommonStates", "Disable", MauiControls.ImageButton.OpacityProperty, 0.5);
+            .VisualState("CommonStates", "Disable", VisualElement.OpacityProperty, 0.5);
 
         LabelStyles.Default = _ => _
             .TextColor(IsLightTheme ? Black : White)
@@ -235,9 +235,9 @@ public class InternalCustomApplicationTheme : ApplicationTheme
 
         TitleBarStyles.Default = _ => _
             .MinimumHeightRequest(32)
-            .VisualState("TitleActiveStates", "TitleBarTitleActive", MauiControls.TitleBar.BackgroundColorProperty, Colors.Transparent)
+            .VisualState("TitleActiveStates", "TitleBarTitleActive", VisualElement.BackgroundColorProperty, Colors.Transparent)
             .VisualState("TitleActiveStates", "TitleBarTitleActive", MauiControls.TitleBar.ForegroundColorProperty, IsLightTheme ? Black : White)
-            .VisualState("TitleActiveStates", "TitleBarTitleInactive", MauiControls.TitleBar.BackgroundColorProperty, IsLightTheme ? White : Black)
+            .VisualState("TitleActiveStates", "TitleBarTitleInactive", VisualElement.BackgroundColorProperty, IsLightTheme ? White : Black)
             .VisualState("TitleActiveStates", "TitleBarTitleInactive", MauiControls.TitleBar.ForegroundColorProperty, IsLightTheme ? Gray400 : Gray500);
 
         PageStyles.Default = _ => _

@@ -1,11 +1,14 @@
 using Nalu;
 using Nalu.Reactor;
+using snowcoreBlog.App.Extensions;
 using snowcoreBlog.App.Features.Home;
 using snowcoreBlog.App.Features.Settings;
+using snowcoreBlog.App.Features.TabThree;
+using snowcoreBlog.App.Features.TabTwo;
 
 namespace snowcoreBlog.App.Features.BlogAppShell;
 
-public class AppShell : Component
+public partial class AppShell : Component
 {
     private readonly HomePage _homePage = new();
     private readonly SettingsPage _settingsPage = new();

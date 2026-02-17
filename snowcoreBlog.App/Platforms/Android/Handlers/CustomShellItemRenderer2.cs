@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Android.Content.Res;
 using Android.Graphics;
@@ -17,31 +16,30 @@ using Xamarin.Android.BlurView;
 using Xamarin.Android.BlurView.Interfaces;
 using Xamarin.Android.BlurView.Renders;
 using AColor = Android.Graphics.Color;
-using AndroidContent = Android.Content;
+using AndroidContent = Android.Content.Res;
 using AResource = Android.Resource;
 using AView = Android.Views.View;
 
 namespace snowcoreBlog.App.Platforms.Android.Handlers;
 
-public class CustomShellItemRenderer(IShellContext shellContext) : ShellItemRenderer(shellContext)
+public class CustomShellItemRenderer2(IShellContext shellContext) : ShellItemRenderer(shellContext)
 {
-    private const float InitialMarginDp = 12f;
+    private const float OverlayMarginDp = 24f;
     private const float ItemInsetDp = 3.5f;
     private const float ItemCornerRadiusDp = 23f;
     private const float SelectedLightenFactor = 0.15f;
+    private const string ItemBackgroundTag = "TabItemBackground";
+    private const string ItemContentTag = "TabItemContent";
+    private const string ItemBlurTag = "BottomBarBlur";
     private const float MinScaleX = 0.75f;
     private const float MinScaleY = 0.9f;
     private const long SelectDurationMs = 360;
     private const long DeselectDurationMs = 200;
-    private const string ItemBackgroundTag = "TabItemBackground";
-    private const string ItemContentTag = "TabItemContent";
+    private WeakReference<BottomNavigationView>? _bottomNavViewRef;
     private static readonly IInterpolator SelectInterpolator = new PathInterpolator(0.2f, 0f, 0f, 1f);
     private static readonly IInterpolator DeselectInterpolator = new PathInterpolator(0.3f, 0f, 0.2f, 1f);
     private readonly ConditionalWeakTable<AView, SelectionState> _selectionStates = [];
-    private readonly IShellContext _shellContext = shellContext;
-    private BlurView? _blurViewRef;
-    private BottomNavigationView? _bottomViewRef;
-    private ViewGroup? _navigationAreaRef;
+    private readonly ConditionalWeakTable<AView, ViewMarginState> _marginStates = [];
     private Drawable.ConstantState? _selectedItemState;
     private int _cachedSelectedArgb;
     private int _cachedInsetPx;
@@ -50,8 +48,7 @@ public class CustomShellItemRenderer(IShellContext shellContext) : ShellItemRend
     public override AView OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         var root = base.OnCreateView(inflater, container, savedInstanceState);
-        
-        if (root == null)
+        if (root is default(AView))
         {
             return new FrameLayout(container?.Context ?? inflater.Context!);
         }
@@ -61,25 +58,60 @@ public class CustomShellItemRenderer(IShellContext shellContext) : ShellItemRend
             TryApplyOverlayLayout(rootGroup);
         }
 
+        var bottomNavigationView = FindBottomNavigationView(root);
+        if (bottomNavigationView is not default(BottomNavigationView))
+        {
+            _bottomNavViewRef = new WeakReference<BottomNavigationView>(bottomNavigationView);
+            ApplyBottomBarInsets(bottomNavigationView);
+        }
+
         return root;
     }
 
-    private static BottomNavigationView? GetBottomView(AView root)
+    public override void OnConfigurationChanged(Configuration newConfig)
     {
-        if (root == null)
-            return null;
+        base.OnConfigurationChanged(newConfig);
+        ReapplyInsets();
+    }
 
-        if (root is BottomNavigationView bv)
-            return bv;
-
-        if (root is ViewGroup vg)
+    private void ReapplyInsets()
+    {
+        if (_bottomNavViewRef?.TryGetTarget(out var bottomNav) is true)
         {
-            for (var i = 0; i < vg.ChildCount; i++)
+            bottomNav.Post(() => ViewCompat.RequestApplyInsets(bottomNav));
+        }
+    }
+
+    private void ApplyBottomBarInsets(BottomNavigationView bottomNavigationView)
+    {
+        ViewCompat.SetOnApplyWindowInsetsListener(bottomNavigationView, new BottomNavigationInsetsListener(_marginStates));
+        bottomNavigationView.Post(() => ViewCompat.RequestApplyInsets(bottomNavigationView));
+    }
+
+    private static BottomNavigationView? FindBottomNavigationView(AView? view)
+    {
+        if (view == null)
+        {
+            return null;
+        }
+
+        if (view is BottomNavigationView bottomNavigationView)
+        {
+            return bottomNavigationView;
+        }
+
+        if (view is not ViewGroup viewGroup)
+        {
+            return null;
+        }
+
+        for (var index = 0; index < viewGroup.ChildCount; index++)
+        {
+            var child = viewGroup.GetChildAt(index);
+            var match = FindBottomNavigationView(child);
+            if (match != null)
             {
-                var child = vg.GetChildAt(i);
-                var found = GetBottomView(child);
-                if (found != null)
-                    return found;
+                return match;
             }
         }
 
@@ -116,6 +148,11 @@ public class CustomShellItemRenderer(IShellContext shellContext) : ShellItemRend
             return;
         }
 
+        var metrics = root.Context.Resources?.DisplayMetrics;
+        var overlayMarginPx = metrics == null
+            ? 0
+            : (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, OverlayMarginDp, metrics);
+
         var overlay = new FrameLayout(root.Context)
         {
             LayoutParameters = new ViewGroup.LayoutParams(
@@ -131,132 +168,113 @@ public class CustomShellItemRenderer(IShellContext shellContext) : ShellItemRend
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.MatchParent));
 
-        // Add a realtime blur view behind the bottom navigation to create a backdrop effect
-        try
+        var marginPx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, OverlayMarginDp, metrics);
+        var cornerRadiusPx = TypedValue.ApplyDimension(ComplexUnitType.Dip, ItemCornerRadiusDp + 5f, metrics);
+
+        var blurView = new BlurView(root.Context)
         {
-            var metrics = root.Context?.Resources?.DisplayMetrics
-                          ?? root.Context?.ApplicationContext?.Resources?.DisplayMetrics;
-            if (metrics == null)
-            {
-                // fallback: add nothing
-            }
-            else
-            {
-                // allow overrides from CustomShell (if app uses it)
-                var customShell = MauiControls.Shell.Current as Controls.CustomShell;
-                var initialMarginDp = customShell?.TabBarMargin ?? InitialMarginDp;
-                var itemCornerDp = (customShell?.ItemCornerRadius ?? ItemCornerRadiusDp) + 5f;
+            DuplicateParentStateEnabled = true,
+            Tag = ItemBlurTag,
+            OutlineProvider = new RoundedOutlineProvider(cornerRadiusPx),
+            ClipToOutline = true
+        };
 
-                var marginPx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, initialMarginDp, metrics);
-                var cornerRadiusPx = TypedValue.ApplyDimension(ComplexUnitType.Dip, itemCornerDp, metrics);
+        IBlurAlgorithm blurAlgorithm = Build.VERSION.SdkInt >= BuildVersionCodes.S
+            ? new RenderEffectBlur()
+            : new RenderScriptBlur(root.Context);
 
-                var blurView = new BlurView(root.Context)
-                {
-                    DuplicateParentStateEnabled = true,
-                    Tag = "BottomBarBlur"
-                };
+        var overlayColor = Colors.White.WithAlpha(0.09f);
 
-                // Apply a rounded outline and enable clipping so the blur has rounded corners
-                if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
-                {
-                    blurView.OutlineProvider = new RoundedOutlineProvider(cornerRadiusPx);
-                    blurView.ClipToOutline = true;
-                }
+        blurView.SetupWith(navigationArea, blurAlgorithm)
+            .SetOverlayColor(AColor.Argb((int)(overlayColor.Alpha * 255), 255, 255, 255).ToArgb())
+            .SetBlurRadius(20f);
 
-                IBlurAlgorithm blurAlgorithm = Build.VERSION.SdkInt >= BuildVersionCodes.S
-                    ? new RenderEffectBlur()
-                    : new RenderScriptBlur(root.Context);
+        // Compute desired width so blur matches and stays centered with the bottom navigation.
+        var desiredWidth = ComputeDesiredWidth(metrics, overlayMarginPx);
+        var blurLp = CreateCenteredLayoutParams(desiredWidth, overlayMarginPx);
+        overlay.AddView(blurView, blurLp);
 
-                // read blur settings from CustomShell when available
-                var blurRadius = customShell?.BottomBarBlurRadius ?? 20f;
-                var overlayColor = customShell?.BottomBarOverlayColor ?? Colors.White.WithAlpha(0.09f);
-
-                blurView.SetupWith(navigationArea, blurAlgorithm)
-                    .SetOverlayColor(AColor.Argb((int)(overlayColor.Alpha * 255), 255, 255, 255).ToArgb())
-                    .SetBlurRadius(blurRadius);
-
-                var lp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent, GravityFlags.Bottom)
-                {
-                    LeftMargin = marginPx + marginPx,
-                    TopMargin = marginPx,
-                    RightMargin = marginPx + marginPx,
-                    BottomMargin = marginPx
-                };
-
-                // keep refs to update when CustomShell properties change
-                _blurViewRef = blurView;
-                _bottomViewRef = bottomView;
-                _navigationAreaRef = navigationArea;
-
-                // subscribe to Shell property changes so bindings update native appearance
-                var shellObj = MauiControls.Shell.Current;
-                if (shellObj != null)
-                {
-                    shellObj.PropertyChanged += Shell_PropertyChanged;
-                }
-
-                overlay.AddView(blurView, lp);
-
-                blurView.Post(() =>
-                {
-                    ViewCompat.SetOnApplyWindowInsetsListener(blurView, new CustomOnApplyWindowInsetsListener(ViewCompat.GetRootWindowInsets(blurView)));
-                    ViewCompat.RequestApplyInsets(blurView);
-                });
-
-                // After the bottom view is measured, set the blur height to match it exactly
-                bottomView.Post(() =>
-                {
-                    try
-                    {
-                        var height = bottomView.Height > 0 ? bottomView.Height : bottomView.MeasuredHeight;
-                        if (height > 0)
-                        {
-                            var currentLp = blurView.LayoutParameters as FrameLayout.LayoutParams ?? lp;
-                            currentLp.Height = height;
-                            currentLp.Gravity = GravityFlags.Bottom;
-                            blurView.LayoutParameters = currentLp;
-                            blurView.RequestLayout();
-                        }
-                    }
-                    catch { }
-                });
-            }
-        }
-        catch (Exception)
+        // After the bottom view is measured, set the blur height to match it exactly
+        bottomView.Post(() =>
         {
-            // If blur can't be created for any reason, silently continue without crashing.
-        }
-        overlay.AddView(
-            bottomView,
-            new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.WrapContent,
-                GravityFlags.Bottom));
+            var height = bottomView.Height > 0 ? bottomView.Height : bottomView.MeasuredHeight;
+            if (height > 0)
+            {
+                var currentLp = blurView.LayoutParameters as FrameLayout.LayoutParams ?? blurLp;
+                currentLp.Height = height;
+                currentLp.Gravity = GravityFlags.Bottom | GravityFlags.CenterHorizontal;
+                blurView.LayoutParameters = currentLp;
+                ViewCompat.SetOnApplyWindowInsetsListener(blurView,
+                    new BottomNavigationInsetsListener(_marginStates));
+                blurView.Post(() => ViewCompat.RequestApplyInsets(blurView));
+                blurView.RequestLayout();
+            }
+        });
+
+        // Limit bottom navigation width on large screens (reuse computed desiredWidth).
+        var bottomLayoutParams = CreateCenteredLayoutParams(desiredWidth, overlayMarginPx);
+        overlay.AddView(bottomView, bottomLayoutParams);
+        ApplyItemWrapViews(bottomView);
 
         root.AddView(overlay);
-
-        ApplyInitialBottomBarMargins(bottomView);
-        ApplyItemWrapViews(bottomView);
     }
 
-    private static void ApplyInitialBottomBarMargins(BottomNavigationView bottomView)
+    private static int ComputeDesiredWidth(DisplayMetrics? metrics, int overlayMarginPx)
     {
-        var context = bottomView.Context;
-        var metrics = context?.Resources?.DisplayMetrics
-            ?? context?.ApplicationContext?.Resources?.DisplayMetrics;
+        var maxWidthDp = 600f; // maximum width for the bottom bar in dp
+        var maxWidthPx = metrics is default(DisplayMetrics)
+            ? ViewGroup.LayoutParams.MatchParent
+            : (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, maxWidthDp, metrics);
 
-        if (metrics == null)
+        var screenWidth = metrics?.WidthPixels ?? int.MaxValue;
+        var desiredWidth = screenWidth is int.MaxValue
+            ? ViewGroup.LayoutParams.MatchParent
+            : Math.Min(screenWidth - (overlayMarginPx * 2), maxWidthPx);
+
+        return desiredWidth;
+    }
+
+    private static FrameLayout.LayoutParams CreateCenteredLayoutParams(int desiredWidth, int overlayMarginPx)
+    {
+        return new FrameLayout.LayoutParams(
+            desiredWidth,
+            ViewGroup.LayoutParams.WrapContent,
+            GravityFlags.Bottom | GravityFlags.CenterHorizontal)
+        {
+            LeftMargin = overlayMarginPx * 2,
+            TopMargin = overlayMarginPx / 2,
+            RightMargin = overlayMarginPx * 2,
+            BottomMargin = overlayMarginPx / 2
+        };
+    }
+
+    private void EnsureDrawableCache(DisplayMetrics metrics)
+    {
+        var insetPx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, ItemInsetDp, metrics);
+        var cornerRadiusPx = TypedValue.ApplyDimension(ComplexUnitType.Dip, ItemCornerRadiusDp, metrics);
+        var selectedColor = GetSelectedItemBackground();
+        var selectedArgb = selectedColor.ToArgb();
+
+        if (_selectedItemState != null
+            && _cachedInsetPx == insetPx
+            && Math.Abs(_cachedCornerRadiusPx - cornerRadiusPx) < 0.5f
+            && _cachedSelectedArgb == selectedArgb)
         {
             return;
         }
 
-        var marginPx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, InitialMarginDp, metrics);
-        if (bottomView.LayoutParameters is ViewGroup.MarginLayoutParams marginLayoutParams)
-        {
-            marginLayoutParams.SetMargins(marginPx + marginPx, marginPx, marginPx + marginPx, marginPx);
-            bottomView.LayoutParameters = marginLayoutParams;
-            bottomView.RequestLayout();
-        }
+        var selectedDrawable = new GradientDrawable();
+        selectedDrawable.SetColor(selectedColor);
+        selectedDrawable.SetCornerRadius(cornerRadiusPx);
+
+        var unselectedDrawable = new GradientDrawable();
+        unselectedDrawable.SetColor(AColor.Transparent);
+        unselectedDrawable.SetCornerRadius(cornerRadiusPx);
+
+        _selectedItemState = selectedDrawable.GetConstantState();
+        _cachedInsetPx = insetPx;
+        _cachedCornerRadiusPx = cornerRadiusPx;
+        _cachedSelectedArgb = selectedArgb;
     }
 
     private void ApplyItemWrapViews(BottomNavigationView bottomView)
@@ -282,7 +300,6 @@ public class CustomShellItemRenderer(IShellContext shellContext) : ShellItemRend
         }
 
         EnsureDrawableCache(metrics);
-
         for (var i = 0; i < menuView.ChildCount; i++)
         {
             if (menuView.GetChildAt(i) is not ViewGroup itemView)
@@ -329,20 +346,6 @@ public class CustomShellItemRenderer(IShellContext shellContext) : ShellItemRend
             // Create and register selection state so we can control initial visibility
             InitSelectionState(itemView, backgroundItemView, bottomView.Menu.GetItem(i)?.IsChecked == true);
         }
-    }
-
-    private void InitSelectionState(ViewGroup itemView, ImageView backgroundItemView, bool currentlySelected)
-    {
-        var state = new SelectionState(itemView, backgroundItemView);
-        _selectionStates.Add(itemView, state);
-
-        var isChecked = currentlySelected;
-        state.IsSelected = isChecked;
-        SetSelectionScale(backgroundItemView, isChecked);
-
-        var listener = new SelectionLayoutListener(state);
-        itemView.AddOnLayoutChangeListener(listener);
-        state.Listener = listener;
     }
 
     private static LinearLayout? CreateCustomItemContent(BottomNavigationView bottomView, int index, DisplayMetrics metrics)
@@ -410,33 +413,18 @@ public class CustomShellItemRenderer(IShellContext shellContext) : ShellItemRend
         return container;
     }
 
-    private void EnsureDrawableCache(DisplayMetrics metrics)
+    private void InitSelectionState(ViewGroup itemView, ImageView backgroundItemView, bool currentlySelected)
     {
-        var insetPx = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, ItemInsetDp, metrics);
-        var cornerRadiusPx = TypedValue.ApplyDimension(ComplexUnitType.Dip, ItemCornerRadiusDp, metrics);
-        var selectedColor = GetSelectedItemBackground();
-        var selectedArgb = selectedColor.ToArgb();
+        var state = new SelectionState(itemView, backgroundItemView);
+        _selectionStates.Add(itemView, state);
 
-        if (_selectedItemState != null
-            && _cachedInsetPx == insetPx
-            && Math.Abs(_cachedCornerRadiusPx - cornerRadiusPx) < 0.5f
-            && _cachedSelectedArgb == selectedArgb)
-        {
-            return;
-        }
+        var isChecked = currentlySelected;
+        state.IsSelected = isChecked;
+        SetSelectionScale(backgroundItemView, isChecked);
 
-        var selectedDrawable = new GradientDrawable();
-        selectedDrawable.SetColor(selectedColor);
-        selectedDrawable.SetCornerRadius(cornerRadiusPx);
-
-        var unselectedDrawable = new GradientDrawable();
-        unselectedDrawable.SetColor(AColor.Transparent);
-        unselectedDrawable.SetCornerRadius(cornerRadiusPx);
-
-        _selectedItemState = selectedDrawable.GetConstantState();
-        _cachedInsetPx = insetPx;
-        _cachedCornerRadiusPx = cornerRadiusPx;
-        _cachedSelectedArgb = selectedArgb;
+        var listener = new SelectionLayoutListener(state);
+        itemView.AddOnLayoutChangeListener(listener);
+        state.Listener = listener;
     }
 
     private static void UpdateSelectionState(SelectionState state, bool animate)
@@ -634,149 +622,109 @@ public class CustomShellItemRenderer(IShellContext shellContext) : ShellItemRend
 
         var colors = new[] { unselected, selected, unselected };
 
-        return new AndroidContent.Res.ColorStateList(states, colors);
+        return new ColorStateList(states, colors);
     }
 
-    private void Shell_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private sealed class BottomNavigationInsetsListener(ConditionalWeakTable<AView, ViewMarginState> marginStates)
+        : Java.Lang.Object, IOnApplyWindowInsetsListener
     {
-        // respond to changes in CustomShell bindable properties
-        if (_bottomViewRef == null)
-            return;
+    	private readonly int _systemBarsInsetsType = WindowInsets.Type.SystemBars();
+    	private readonly int _displayCutoutInsetsType = WindowInsets.Type.DisplayCutout();
+        private readonly ConditionalWeakTable<AView, ViewMarginState> _marginStates = marginStates;
 
-        // run UI updates on bottom view's thread
-        _bottomViewRef.Post(() =>
+        public WindowInsetsCompat? OnApplyWindowInsets(AView? v, WindowInsetsCompat? insets)
         {
+            if (v == null || insets == null)
+            {
+                return insets;
+            }
+
+            if (v.LayoutParameters is not ViewGroup.MarginLayoutParams marginLayoutParams)
+            {
+                return insets;
+            }
+
+            var state = _marginStates.GetOrCreateValue(v);
+            if (!state.IsCaptured)
+            {
+                state.Capture(marginLayoutParams);
+            }
+
+            var mergedInsets = ResolveSystemAndCutoutInsets(v, insets);
+            // In horizontal (landscape) orientation we want the bottom bar to stay centered
+            // and not pick up large left/right insets, so ignore left/right insets there.
             try
             {
-                if (e.PropertyName == nameof(Controls.CustomShell.TabBarMargin)
-                    || e.PropertyName == nameof(Controls.CustomShell.TabBarCornerRadius)
-                    || e.PropertyName == nameof(Controls.CustomShell.TabBarElevation))
+                var cfg = v.Context?.Resources?.Configuration;
+                if (cfg != null && cfg.Orientation == AndroidContent.Orientation.Landscape)
                 {
-                    ApplyInitialBottomBarMargins(_bottomViewRef);
-                }
-
-                if (e.PropertyName == nameof(Controls.CustomShell.ItemCornerRadius)
-                    || e.PropertyName == nameof(Controls.CustomShell.ItemInset)
-                    || e.PropertyName == nameof(Controls.CustomShell.SelectedLightenFactor))
-                {
-                    ApplyItemWrapViews(_bottomViewRef);
-                }
-
-                if (e.PropertyName == nameof(Controls.CustomShell.BottomBarBlurRadius)
-                    || e.PropertyName == nameof(Controls.CustomShell.BottomBarOverlayColor)
-                    || e.PropertyName == nameof(Controls.CustomShell.BottomBarBlurEnabled)
-                    || e.PropertyName == nameof(Controls.CustomShell.TabBarMargin)
-                    || e.PropertyName == nameof(Controls.CustomShell.ItemCornerRadius))
-                {
-                    UpdateBlurFromShell();
+                    mergedInsets = new ResolvedInsets(0, mergedInsets.Top, 0, mergedInsets.Bottom);
                 }
             }
             catch
             {
-                // swallow update errors
+                // Fall back to applying full insets on any error retrieving configuration.
             }
-        });
-    }
-
-    private void UpdateBlurFromShell()
-    {
-        if (_blurViewRef == null || _navigationAreaRef == null || _bottomViewRef == null)
-            return;
-
-        var customShell = MauiControls.Shell.Current as Controls.CustomShell;
-        if (customShell == null)
-            return;
-
-        var metrics = _blurViewRef.Context?.Resources?.DisplayMetrics
-                      ?? _blurViewRef.Context?.ApplicationContext?.Resources?.DisplayMetrics;
-        if (metrics == null)
-            return;
-
-        var itemCornerDp = customShell.ItemCornerRadius + 5f;
-        var cornerRadiusPx = TypedValue.ApplyDimension(ComplexUnitType.Dip, itemCornerDp, metrics);
-
-        // update outline radius and clipping
-        try
-        {
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
-            {
-                _blurViewRef.OutlineProvider = new RoundedOutlineProvider(cornerRadiusPx);
-                _blurViewRef.ClipToOutline = true;
-            }
-        }
-        catch { }
-
-        // update blur settings
-        try
-        {
-            var blurRadius = customShell.BottomBarBlurRadius;
-            var overlayColor = customShell.BottomBarOverlayColor;
-            var a = (int)(overlayColor.Alpha * 255);
-            var r = (int)(overlayColor.Red * 255);
-            var g = (int)(overlayColor.Green * 255);
-            var b = (int)(overlayColor.Blue * 255);
-
-            _blurViewRef.SetBlurRadius(blurRadius);
-            _blurViewRef.SetOverlayColor(AColor.Argb(a, r, g, b).ToArgb());
-        }
-        catch { }
-    }
-
-    private class CustomOnApplyWindowInsetsListener : Java.Lang.Object, IOnApplyWindowInsetsListener
-    {
-    	private readonly int _systemBarsInsetsType = WindowInsets.Type.SystemBars();
-    	private readonly int _displayCutoutInsetsType = WindowInsets.Type.DisplayCutout();
-
-		private int? _existingLeftMargin;
-		private int? _existingRightMargin;
-		private int? _existingTopMargin;
-		private int? _existingBottomMargin;
-
-		private readonly WindowInsetsCompat _rootWindowInsets;
-
-		public CustomOnApplyWindowInsetsListener(WindowInsetsCompat rootWindowInsets)
-		{
-			_rootWindowInsets = rootWindowInsets;
-		}
-
-        public WindowInsetsCompat OnApplyWindowInsets(AView v, WindowInsetsCompat insets)
-        {
-			var systemBars = _rootWindowInsets.GetInsets(_systemBarsInsetsType);
-			var displayCutout = _rootWindowInsets.GetInsets(_displayCutoutInsetsType);
-
-			var left = systemBars.Left + displayCutout.Left;
-			var top = systemBars.Top + displayCutout.Top;
-			var right = systemBars.Right + displayCutout.Right;
-			var bottom = systemBars.Bottom + displayCutout.Bottom;
-
-			// Add insets to existing margins instead of replacing them, so layout shifts correctly.
-			if (v.LayoutParameters is ViewGroup.MarginLayoutParams existingMargins)
-			{
-				_existingLeftMargin ??= existingMargins.LeftMargin;
-				_existingTopMargin ??= existingMargins.TopMargin;
-				_existingRightMargin ??= existingMargins.RightMargin;
-				_existingBottomMargin ??= existingMargins.BottomMargin;
-				existingMargins.SetMargins(_existingLeftMargin.Value + left, _existingTopMargin.Value + top, _existingRightMargin.Value + right, _existingBottomMargin.Value + bottom);
-				v.LayoutParameters = existingMargins;
-			}
-			else if (v.LayoutParameters != null)
-			{
-				var newLayoutParams = new ViewGroup.MarginLayoutParams(v.LayoutParameters);
-				// No existing margins available in this case; apply the insets as margins.
-				newLayoutParams.SetMargins(left, top, right, bottom);
-				v.LayoutParameters = newLayoutParams;
-			}
-			else
-			{
-				var newLayoutParams = new ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
-				newLayoutParams.SetMargins(left, top, right, bottom);
-				v.LayoutParameters = newLayoutParams;
-			}
+            marginLayoutParams.SetMargins(
+                state.Left + mergedInsets.Left,
+                state.Top,
+                state.Right + mergedInsets.Right,
+                state.Bottom + mergedInsets.Bottom);
+            v.LayoutParameters = marginLayoutParams;
 
 			v.RequestLayout();
 			v.Invalidate();
 
-			return insets;
+            return insets;
+        }
+
+        private ResolvedInsets ResolveSystemAndCutoutInsets(AView? view, WindowInsetsCompat? insets)
+        {
+            var sourceInsets = view == null ? insets : ViewCompat.GetRootWindowInsets(view) ?? insets;
+            if (sourceInsets == null)
+            {
+                return new ResolvedInsets(0, 0, 0, 0);
+            }
+
+            // Child listeners often receive consumed/zero values; this API keeps stable bar sizes.
+            var systemBars = sourceInsets.GetInsetsIgnoringVisibility(_systemBarsInsetsType);
+            var displayCutout = sourceInsets.GetInsets(_displayCutoutInsetsType);
+
+            var systemLeft = systemBars?.Left ?? 0;
+            var systemTop = systemBars?.Top ?? 0;
+            var systemRight = systemBars?.Right ?? 0;
+            var systemBottom = systemBars?.Bottom ?? 0;
+
+            var cutoutLeft = displayCutout?.Left ?? 0;
+            var cutoutTop = displayCutout?.Top ?? 0;
+            var cutoutRight = displayCutout?.Right ?? 0;
+            var cutoutBottom = displayCutout?.Bottom ?? 0;
+
+            return new ResolvedInsets(
+                Math.Max(systemLeft, cutoutLeft),
+                Math.Max(systemTop, cutoutTop),
+                Math.Max(systemRight, cutoutRight),
+                Math.Max(systemBottom, cutoutBottom));
+        }
+
+        private readonly record struct ResolvedInsets(int Left, int Top, int Right, int Bottom);
+    }
+
+    private sealed class ViewMarginState
+    {
+        public bool IsCaptured { get; private set; }
+        public int Left { get; private set; }
+        public int Top { get; private set; }
+        public int Right { get; private set; }
+        public int Bottom { get; private set; }
+
+        public void Capture(ViewGroup.MarginLayoutParams layoutParams)
+        {
+            Left = layoutParams.LeftMargin;
+            Top = layoutParams.TopMargin;
+            Right = layoutParams.RightMargin;
+            Bottom = layoutParams.BottomMargin;
+            IsCaptured = true;
         }
     }
 }

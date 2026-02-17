@@ -18,7 +18,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
-		<ApplicationTitle>snowcoreBlog.App</ApplicationTitle>
+		<ApplicationTitle>snowcore's Blog</ApplicationTitle>
 		<ApplicationId>com.snowcore.blogapp</ApplicationId>
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
@@ -28,7 +28,7 @@
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">27.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
@@ -41,7 +41,6 @@
 		<MauiFont Include="Resources\Fonts\*" />
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
-
 
 	<ItemGroup Condition="'$(Configuration)'=='Debug'">
 		<RuntimeHostConfigurationOption Include="MauiReactor.HotReload" Value="true" Trim="false" />
@@ -75,6 +74,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\NaluReactorNavigation\Nalu.Reactor.Navigation\Nalu.Reactor.Navigation.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="Platforms\Android\Resources\values\*" />
 		<None Remove="appsettings.json" />
 		<EmbeddedResource Include="appsettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -85,15 +89,9 @@
 			<DependentUpon>appsettings.json</DependentUpon>
 		</EmbeddedResource>
 		<Localize Include="Resources\Raw\Translations\TranslationResources_*.json" NamespaceName="snowcoreBlog.App.Resources" ClassName="TranslationResources" NeutralCulture="en" />
-		<ProjectReference Include="..\..\..\NaluReactorNavigation\Nalu.Reactor.Navigation\Nalu.Reactor.Navigation.csproj" />
 		<Compile Update="**\*.state.cs">
 			<DependentUpon>$([System.String]::Copy('%(Filename)').Replace('.state','.cs'))</DependentUpon>
 		</Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Features\TabThree\" />
-	  <Folder Include="Features\TabTwo\" />
 	</ItemGroup>
 
 </Project>

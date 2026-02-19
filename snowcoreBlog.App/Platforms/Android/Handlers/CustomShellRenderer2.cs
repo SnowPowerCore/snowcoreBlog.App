@@ -4,6 +4,7 @@ using Android.OS;
 using Android.Views;
 using AndroidX.Fragment.App;
 using CustomShellMaui.Enum;
+using CustomShellMaui.Platforms.Android;
 using Google.Android.Material.BottomNavigation;
 using Microsoft.Maui.Controls.Handlers.Compatibility;
 using Microsoft.Maui.Controls.Platform.Compatibility;
@@ -32,13 +33,13 @@ public class CustomShellRenderer2 : ShellRenderer
 
 	protected override void SwitchFragment(FragmentManager manager, global::Android.Views.View targetView, ShellItem newItem, bool animate = true)
 	{
-		if (!animate)
+		var animation = PageTransitionExtensions.GetRoot(newItem);
+
+		if (!animate || animation is default(ConfigAndroid))
 		{
 			base.SwitchFragment(manager, targetView, newItem, false);
 			return;
 		}
-
-		var animation = PageTransitionExtensions.GetRoot(newItem);
 
 		var previousView = _currentView;
 		_currentView = CreateShellItemRenderer(newItem);
@@ -76,9 +77,12 @@ public class CustomShellRenderer2 : ShellRenderer
 
 		void OnDestroyed(object sender, EventArgs args)
 		{
-			previousView.Destroyed -= OnDestroyed;
-			previousView.Dispose();
-			previousView = default;
+			if (previousView is not default(IShellItemRenderer))
+			{
+				previousView.Destroyed -= OnDestroyed;
+				previousView.Dispose();
+				previousView = default;
+			}
 		}
 
 		if (previousView is not default(IShellItemRenderer))

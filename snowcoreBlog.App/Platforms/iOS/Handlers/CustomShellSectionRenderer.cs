@@ -1,4 +1,5 @@
-﻿using Microsoft.Maui.Controls.Platform.Compatibility;
+﻿using CustomShellMaui.Platforms.iOS;
+using Microsoft.Maui.Controls.Platform.Compatibility;
 using snowcoreBlog.App.Platforms.iOS.Extensions;
 using UIKit;
 
@@ -26,11 +27,11 @@ public class CustomShellSectionRenderer(IShellContext context) : ShellSectionRen
 
     private void Pop(bool animated)
     {
-        if (animated)
+        var anim = PageTransitionExtensions.GetPop(ShellSection);
+        if (animated && anim is not default(ConfigiOSTransitions))
         {
             var oldView = View.SnapshotView(false);
             var newView = View;
-            var anim = PageTransitionExtensions.GetPop(ShellSection);
             View.Layer.RemoveAllAnimations();
 
             View.Superview.AddSubview(oldView);
@@ -50,12 +51,11 @@ public class CustomShellSectionRenderer(IShellContext context) : ShellSectionRen
 
     public override void PushViewController(UIViewController viewController, bool animated)
     {
-
-        if (animated)
+        var anim = PageTransitionExtensions.GetPush(ShellSection);
+        if (animated && anim is not default(ConfigiOSTransitions))
         {
             var oldView = View.SnapshotView(false);
             var newView = viewController.View;
-            var anim = PageTransitionExtensions.GetPush(ShellSection);
             View.Layer.RemoveAllAnimations();
 
             View.AddSubview(newView);
@@ -74,6 +74,7 @@ public class CustomShellSectionRenderer(IShellContext context) : ShellSectionRen
             });
             PageTransitionExtensions.Animate(newView, anim.AnimationIn);
         }
+
         base.PushViewController(viewController, false);
     }
 }

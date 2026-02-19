@@ -9,6 +9,7 @@ using Android.Views.Animations;
 using Android.Widget;
 using AndroidX.Core.View;
 using AndroidX.Fragment.App;
+using CustomShellMaui.Platforms.Android;
 using Google.Android.Material.BottomNavigation;
 using Microsoft.Maui.Controls.Handlers.Compatibility;
 using Microsoft.Maui.Controls.Platform.Compatibility;
@@ -77,13 +78,19 @@ public class CustomShellItemRenderer2(IShellContext shellContext) : ShellItemRen
         {
             case ShellNavigationSource.Push:
                 var push = PageTransitionExtensions.GetPush(page);
-                t.SetCustomAnimations(push.AnimationIn, push.AnimationOut);
+                if (push is default(ConfigAndroid))
+                    base.SetupAnimation(navSource, t, page);
+                else
+                    t.SetCustomAnimations(push.AnimationIn, push.AnimationOut);
                 break;
 
             case ShellNavigationSource.Pop:
             case ShellNavigationSource.PopToRoot:
                 var pop = PageTransitionExtensions.GetPop(page);
-                t.SetCustomAnimations(pop.AnimationIn, pop.AnimationOut);
+                if (pop is default(ConfigAndroid))
+                    base.SetupAnimation(navSource, t, page);
+                else
+                    t.SetCustomAnimations(pop.AnimationIn, pop.AnimationOut);
                 break;
 
             case ShellNavigationSource.ShellSectionChanged:

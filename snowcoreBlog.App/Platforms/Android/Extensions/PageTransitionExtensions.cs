@@ -1,32 +1,38 @@
 using CustomShellMaui.Enum;
+using CustomShellMaui.Models;
 using CustomShellMaui.Platforms.Android;
 
 namespace snowcoreBlog.App.Platforms.Android.Extensions;
 
 public static class PageTransitionExtensions
 {
-    public static ConfigAndroid GetRoot(BindableObject page)
+    public static ConfigAndroid? GetRoot(BindableObject page)
     {
         var config = new ConfigAndroid();
         var animation = PageTransitions.GetPageTransition(page);
+        if (animation is default(Transitions))
+            return default;
         config.AbovePage = animation.Root.AbovePage;
         config.Duration = animation.Root.DurationAndroid;
         
-            config.AnimationIn = animation.Root.NextPageAndroid <= 0
-                ? GetAnimation(animation.Root.NextPage)
-                : animation.Root.NextPageAndroid;
+        config.AnimationIn = animation.Root.NextPageAndroid <= 0
+            ? GetAnimation(animation.Root.NextPage)
+            : animation.Root.NextPageAndroid;
 
-            config.AnimationOut = animation.Root.CurrentPageAndroid <= 0
-                ? GetAnimation(animation.Root.CurrentPage)
-                : animation.Root.CurrentPageAndroid;
+        config.AnimationOut = animation.Root.CurrentPageAndroid <= 0
+            ? GetAnimation(animation.Root.CurrentPage)
+            : animation.Root.CurrentPageAndroid;
                     
         return config;
     }
 
-    public static ConfigAndroid GetPush(BindableObject page)
+    public static ConfigAndroid? GetPush(BindableObject page)
     {
         var config = new ConfigAndroid();
         var animation = PageTransitions.GetPageTransition(page);
+        if (animation is default(Transitions))
+            return default;
+        config.Duration = animation.Push.DurationAndroid;
         
         config.AnimationIn = animation.Push.NextPageAndroid <= 0
             ? GetAnimation(animation.Push.NextPage)
@@ -39,10 +45,13 @@ public static class PageTransitionExtensions
         return config;
     }
 
-    public static ConfigAndroid GetPop(BindableObject page)
+    public static ConfigAndroid? GetPop(BindableObject page)
     {
         var config = new ConfigAndroid();
         var animation = PageTransitions.GetPageTransition(page);
+        if (animation is default(Transitions))
+            return default;
+        config.Duration = animation.Pop.DurationAndroid;
 
         config.AnimationIn = animation.Pop.NextPageAndroid <= 0
             ? GetAnimation(animation.Pop.NextPage)

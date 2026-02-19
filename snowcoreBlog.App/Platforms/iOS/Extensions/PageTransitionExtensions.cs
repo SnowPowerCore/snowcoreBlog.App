@@ -1,6 +1,7 @@
 ﻿using CoreAnimation;
 using CoreGraphics;
 using CustomShellMaui.Enum;
+using CustomShellMaui.Models;
 using CustomShellMaui.Platforms.iOS;
 using Microsoft.Maui.Platform;
 using UIKit;
@@ -9,10 +10,12 @@ namespace snowcoreBlog.App.Platforms.iOS.Extensions;
 
 public class PageTransitionExtensions
 {
-    public static ConfigiOSTransitions GetRoot(BindableObject page)
+    public static ConfigiOSTransitions? GetRoot(BindableObject page)
     {
         var config = new ConfigiOSTransitions();
         var animation = PageTransitions.GetPageTransition(page);
+        if (animation is default(Transitions))
+            return default;
         config.AbovePage = animation.Root.AbovePage;
         
         config.AnimationIn = animation.Root.NextPageiOS ?? GetAnimation(animation.Root.NextPage) ?? new ConfigiOS();
@@ -21,19 +24,23 @@ public class PageTransitionExtensions
         return config;
     }
 
-    public static ConfigiOSTransitions GetPush(BindableObject page)
+    public static ConfigiOSTransitions? GetPush(BindableObject page)
     {
         var config = new ConfigiOSTransitions();
         var animation = PageTransitions.GetPageTransition(page);
+        if (animation is default(Transitions))
+            return default;
         config.AnimationIn = animation.Push.NextPageiOS ?? GetAnimation(animation.Push.NextPage) ?? new ConfigiOS();
         config.AnimationOut = animation.Push.CurrentPageiOS ?? GetAnimation(animation.Push.CurrentPage) ?? new ConfigiOS();
         return config;
     }
 
-    public static ConfigiOSTransitions GetPop(BindableObject page)
+    public static ConfigiOSTransitions? GetPop(BindableObject page)
     {
         var config = new ConfigiOSTransitions();
         var animation = PageTransitions.GetPageTransition(page);
+        if (animation is default(Transitions))
+            return default;
         config.AnimationIn = animation.Pop.NextPageiOS ?? GetAnimation(animation.Pop.NextPage) ?? new ConfigiOS();
         config.AnimationOut = animation.Pop.CurrentPageiOS ?? GetAnimation(animation.Pop.CurrentPage) ?? new ConfigiOS();
         return config;

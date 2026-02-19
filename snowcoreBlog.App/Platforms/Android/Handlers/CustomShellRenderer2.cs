@@ -2,6 +2,8 @@ using Android.Content.Res;
 using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Views;
+using AndroidX.Fragment.App;
+using CustomShellMaui.Enum;
 using Google.Android.Material.BottomNavigation;
 using Microsoft.Maui.Controls.Handlers.Compatibility;
 using Microsoft.Maui.Controls.Platform.Compatibility;
@@ -16,6 +18,8 @@ namespace snowcoreBlog.App.Platforms.Android.Handlers;
 
 public class CustomShellRenderer2 : ShellRenderer
 {
+	private IShellItemRenderer _currentView;
+
     protected override IShellItemRenderer CreateShellItemRenderer(ShellItem shellItem)
     {
         var renderer = new CustomShellItemRenderer2(this);
@@ -25,6 +29,61 @@ public class CustomShellRenderer2 : ShellRenderer
 
     protected override IShellBottomNavViewAppearanceTracker CreateBottomNavViewAppearanceTracker(ShellItem shellItem) =>
         new CustomShellBottomNavViewAppearanceTracker2(this, shellItem);
+
+	protected override void SwitchFragment(FragmentManager manager, global::Android.Views.View targetView, ShellItem newItem, bool animate = true)
+	{
+		if (!animate)
+		{
+			base.SwitchFragment(manager, targetView, newItem, false);
+			return;
+		}
+
+		var animation = PageTransitionExtensions.GetRoot(newItem);
+
+		var previousView = _currentView;
+		_currentView = CreateShellItemRenderer(newItem);
+		_currentView.ShellItem = newItem;
+		var fragment = _currentView.Fragment;
+
+		FragmentTransaction transaction = manager.BeginTransaction();
+
+		if (animate)
+			transaction.SetCustomAnimations(animation.AnimationIn, animation.AnimationOut);
+
+		if (animation.AbovePage == TransitionPageType.NextPage && animate)
+		{
+			transaction.Add(targetView.Id, fragment);
+			Task.Run(async () =>
+			{
+				await Task.Delay(animation.Duration);
+				FragmentTransaction transactionTemp = manager.BeginTransaction();
+				transactionTemp.Replace(fragment.Id, fragment);
+				transactionTemp.CommitAllowingStateLoss();
+			});
+		}
+		else
+		{
+			transaction.Replace(targetView.Id, fragment);
+		}
+
+		if (previousView is default(IShellItemRenderer))
+		{
+			transaction.SetReorderingAllowed(true);
+		}
+
+		transaction.CommitAllowingStateLoss();
+
+
+		void OnDestroyed(object sender, EventArgs args)
+		{
+			previousView.Destroyed -= OnDestroyed;
+			previousView.Dispose();
+			previousView = default;
+		}
+
+		if (previousView is not default(IShellItemRenderer))
+			previousView.Destroyed += OnDestroyed;
+	}
 }
 
 internal class CustomShellBottomNavViewAppearanceTracker2(IShellContext shellContext, ShellItem shellItem) : ShellBottomNavViewAppearanceTracker(shellContext, shellItem)

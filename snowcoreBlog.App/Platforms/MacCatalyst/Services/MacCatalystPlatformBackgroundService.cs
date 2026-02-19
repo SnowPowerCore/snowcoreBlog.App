@@ -8,19 +8,14 @@ namespace snowcoreBlog.App.Platforms.MacCatalyst.Services;
 /// MacCatalyst-specific implementation of platform background service.
 /// Uses Background Task API for background execution on macOS.
 /// </summary>
-public class MacCatalystPlatformBackgroundService : IPlatformBackgroundService
+public class MacCatalystPlatformBackgroundService(
+    ILogger<MacCatalystPlatformBackgroundService> logger) : IPlatformBackgroundService
 {
-    private readonly ILogger<MacCatalystPlatformBackgroundService> _logger;
+    private readonly ILogger<MacCatalystPlatformBackgroundService> _logger = logger;
     private const string BackgroundTaskIdentifier = "com.snowcore.blogapp.backgroundtask";
     private nint _backgroundTaskId;
     private Func<CancellationToken, Task>? _workAction;
     private CancellationTokenSource? _internalCts;
-
-    public MacCatalystPlatformBackgroundService(
-        ILogger<MacCatalystPlatformBackgroundService> logger)
-    {
-        _logger = logger;
-    }
 
     public async Task StartAsync(Func<CancellationToken, Task> workAction, CancellationToken cancellationToken)
     {

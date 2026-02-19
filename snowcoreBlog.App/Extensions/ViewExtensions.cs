@@ -7,7 +7,7 @@ namespace snowcoreBlog.App.Extensions;
 
 public static class ViewExtensions
 {
-    public static VisualNode CustomContentPage(
+    public static CustomContentPage CustomContentPage(
         string? title = null,
         VisualNode? titleBarView = null,
         Func<bool>? isBackButtonVisible = null,

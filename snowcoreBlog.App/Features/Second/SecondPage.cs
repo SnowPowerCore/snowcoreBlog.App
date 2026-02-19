@@ -4,12 +4,12 @@ using snowcoreBlog.App.Features.Third;
 
 namespace snowcoreBlog.App.Features.Second;
 
-public partial class SecondPage : ComponentWithProps<SecondPageProps>, IAppearingAware, ILeavingGuard, IDisposable
+public partial class SecondPage(INavigationService navigation, INavigationServiceProvider navigationServiceProvider) : ComponentWithProps<SecondPageProps>, IAppearingAware, ILeavingGuard, IDisposable
 {
     private bool _disposed = false;
 
-    private readonly INavigationService _navigation;
-    private readonly INavigationServiceProvider _navigationServiceProvider;
+    private readonly INavigationService _navigation = navigation;
+    private readonly INavigationServiceProvider _navigationServiceProvider = navigationServiceProvider;
 
     public override VisualNode Render() =>
         CustomContentPage(TranslationResources.SecondPageTitle, children:
@@ -25,12 +25,6 @@ public partial class SecondPage : ComponentWithProps<SecondPageProps>, IAppearin
             )
             .VCenter()
         );
-
-    public SecondPage(INavigationService navigation, INavigationServiceProvider navigationServiceProvider)
-    {
-        _navigation = navigation;
-        _navigationServiceProvider = navigationServiceProvider;
-    }
 
     public ValueTask OnAppearingAsync()
     {

@@ -1,3 +1,5 @@
+using CustomShellMaui.Enum;
+using CustomShellMaui.Models;
 using Nalu;
 using Plugin.Maui.BottomSheet;
 using Plugin.Maui.BottomSheet.Navigation;
@@ -7,13 +9,13 @@ using snowcoreBlog.App.Features.Shared;
 
 namespace snowcoreBlog.App.Features.Third;
 
-public partial class ThirdPage : Component, IAppearingAware, ILeavingGuard, IDisposable
+public partial class ThirdPage(INavigationService navigation, IBottomSheetNavigationService bottomSheetNavigation) : Component, IAppearingAware, ILeavingGuard, IDisposable
 {
     private bool _disposed = false;
 
-    private readonly INavigationService _navigation;
+    private readonly INavigationService _navigation = navigation;
 
-    private readonly IBottomSheetNavigationService _bottomSheetNavigation;
+    private readonly IBottomSheetNavigationService _bottomSheetNavigation = bottomSheetNavigation;
 
     public override VisualNode Render() =>
         CustomContentPage(TranslationResources.SecondPageTitle, children:
@@ -31,13 +33,30 @@ public partial class ThirdPage : Component, IAppearingAware, ILeavingGuard, IDis
                 .VCenter(),
                 BottomSheet()
             )
-        );
-
-    public ThirdPage(INavigationService navigation, IBottomSheetNavigationService bottomSheetNavigation)
-    {
-        _navigation = navigation;
-        _bottomSheetNavigation = bottomSheetNavigation;
-    }
+        )
+        .Set(PageTransitions.PageTransitionProperty, new Transitions
+        {
+            Root = new TransitionRoot
+            {
+                CurrentPage = TransitionType.FadeOut
+            },
+            Push = new Transition
+            {
+#if ANDROID
+                DurationAndroid = 50,
+#endif
+                CurrentPage = TransitionType.FadeOut,
+                NextPage = TransitionType.ScaleIn
+            },
+            Pop = new Transition
+            {
+#if ANDROID
+                DurationAndroid = 50,
+#endif
+                CurrentPage = TransitionType.ScaleOut,
+                NextPage = TransitionType.FadeIn
+            },
+        });
 
     public ValueTask OnAppearingAsync()
     {

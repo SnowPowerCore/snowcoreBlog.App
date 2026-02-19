@@ -8,10 +8,12 @@ using Android.Views;
 using Android.Views.Animations;
 using Android.Widget;
 using AndroidX.Core.View;
+using AndroidX.Fragment.App;
 using Google.Android.Material.BottomNavigation;
 using Microsoft.Maui.Controls.Handlers.Compatibility;
 using Microsoft.Maui.Controls.Platform.Compatibility;
 using Microsoft.Maui.Platform;
+using snowcoreBlog.App.Platforms.Android.Extensions;
 using Xamarin.Android.BlurView;
 using Xamarin.Android.BlurView.Interfaces;
 using Xamarin.Android.BlurView.Renders;
@@ -19,6 +21,7 @@ using AColor = Android.Graphics.Color;
 using AndroidContent = Android.Content.Res;
 using AResource = Android.Resource;
 using AView = Android.Views.View;
+using Page = Microsoft.Maui.Controls.Page;
 
 namespace snowcoreBlog.App.Platforms.Android.Handlers;
 
@@ -66,6 +69,26 @@ public class CustomShellItemRenderer2(IShellContext shellContext) : ShellItemRen
         }
 
         return root;
+    }
+
+    protected override void SetupAnimation(ShellNavigationSource navSource, FragmentTransaction t, Page page)
+    {
+        switch (navSource)
+        {
+            case ShellNavigationSource.Push:
+                var push = PageTransitionExtensions.GetPush(page);
+                t.SetCustomAnimations(push.AnimationIn, push.AnimationOut);
+                break;
+
+            case ShellNavigationSource.Pop:
+            case ShellNavigationSource.PopToRoot:
+                var pop = PageTransitionExtensions.GetPop(page);
+                t.SetCustomAnimations(pop.AnimationIn, pop.AnimationOut);
+                break;
+
+            case ShellNavigationSource.ShellSectionChanged:
+                break;
+        }
     }
 
     public override void OnConfigurationChanged(Configuration newConfig)
@@ -527,11 +550,9 @@ public class CustomShellItemRenderer2(IShellContext shellContext) : ShellItemRen
         backgroundView.Alpha = isSelected ? 1f : 0f;
     }
 
-    private sealed class AnimationEndListener : Java.Lang.Object, global::Android.Animation.Animator.IAnimatorListener
+    private sealed class AnimationEndListener(Action onEnd) : Java.Lang.Object, global::Android.Animation.Animator.IAnimatorListener
     {
-        private readonly Action _onEnd;
-
-        public AnimationEndListener(Action onEnd) => _onEnd = onEnd;
+        private readonly Action _onEnd = onEnd;
 
         public void OnAnimationCancel(global::Android.Animation.Animator animation) { }
         public void OnAnimationEnd(global::Android.Animation.Animator animation) => _onEnd?.Invoke();
@@ -566,11 +587,9 @@ public class CustomShellItemRenderer2(IShellContext shellContext) : ShellItemRen
         public SelectionLayoutListener? Listener { get; set; }
     }
 
-    private sealed class RoundedOutlineProvider : ViewOutlineProvider
+    private sealed class RoundedOutlineProvider(float radius) : ViewOutlineProvider
     {
-        private readonly float _radius;
-
-        public RoundedOutlineProvider(float radius) => _radius = radius;
+        private readonly float _radius = radius;
 
         public override void GetOutline(AView? view, Outline? outline)
         {

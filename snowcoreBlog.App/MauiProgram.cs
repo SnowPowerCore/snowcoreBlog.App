@@ -1,9 +1,6 @@
 ﻿using FFImageLoading.Maui;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-#if ANDROID
-using snowcoreBlog.App.Platforms.Android.Handlers;
-#endif
 using Plugin.Maui.BottomSheet.Hosting;
 using ReactorTheme;
 using snowcoreBlog.App.Extensions;
@@ -16,6 +13,14 @@ using snowcoreBlog.App.Features.TabTwo;
 using snowcoreBlog.App.Features.Third;
 using snowcoreBlog.App.Resources.Styles;
 using snowcoreBlog.App.Services.Background;
+
+#if ANDROID
+using snowcoreBlog.App.Platforms.Android.Handlers;
+#endif
+
+#if IOS
+using snowcoreBlog.App.Platforms.iOS.Handlers;
+#endif
 
 namespace snowcoreBlog.App;
 
@@ -41,7 +46,10 @@ public static class MauiProgram
             .ConfigureMauiHandlers(handlers =>
             {
 #if ANDROID
-                handlers.AddHandler<Microsoft.Maui.Controls.Shell, CustomShellRenderer2>();
+                handlers.AddHandler<MauiControls.Shell, CustomShellRenderer2>();
+
+#elif IOS
+                handlers.AddHandler<MauiControls.Shell, CustomShellRenderer>();
 #endif
             })
             .ConfigureFonts(static fonts =>

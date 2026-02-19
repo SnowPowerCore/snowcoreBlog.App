@@ -7,17 +7,12 @@ namespace snowcoreBlog.App.Platforms.Windows.Services;
 /// Windows-specific implementation of platform background service.
 /// Windows allows background tasks to run freely when the app is minimized.
 /// </summary>
-public class WindowsPlatformBackgroundService : IPlatformBackgroundService
+public class WindowsPlatformBackgroundService(
+    ILogger<WindowsPlatformBackgroundService> logger) : IPlatformBackgroundService
 {
-    private readonly ILogger<WindowsPlatformBackgroundService> _logger;
+    private readonly ILogger<WindowsPlatformBackgroundService> _logger = logger;
     private bool _isServiceStarted;
     private CancellationTokenSource? _internalCts;
-
-    public WindowsPlatformBackgroundService(
-        ILogger<WindowsPlatformBackgroundService> logger)
-    {
-        _logger = logger;
-    }
 
     public async Task StartAsync(Func<CancellationToken, Task> workAction, CancellationToken cancellationToken)
     {

@@ -12,10 +12,11 @@ namespace snowcoreBlog.App.Platforms.Android.Services;
 /// Android-specific implementation of platform background service.
 /// Uses Foreground Service for stable background execution.
 /// </summary>
-public class AndroidPlatformBackgroundService : IPlatformBackgroundService
+public class AndroidPlatformBackgroundService(
+    ILogger<AndroidPlatformBackgroundService> logger) : IPlatformBackgroundService
 {
-    private readonly ILogger<AndroidPlatformBackgroundService> _logger;
-    private readonly Context _context;
+    private readonly ILogger<AndroidPlatformBackgroundService> _logger = logger;
+    private readonly Context _context = AndroidApplication.Context;
     private bool _isServiceStarted;
 
     private const string ServiceChannelId = "snowcoreBlog.BackgroundService";
@@ -23,13 +24,6 @@ public class AndroidPlatformBackgroundService : IPlatformBackgroundService
     private const int NotificationId = 1000;
 
     private Func<CancellationToken, Task>? _workAction;
-
-    public AndroidPlatformBackgroundService(
-        ILogger<AndroidPlatformBackgroundService> logger)
-    {
-        _logger = logger;
-        _context = AndroidApplication.Context;
-    }
 
     public async Task StartAsync(Func<CancellationToken, Task> workAction, CancellationToken cancellationToken)
     {

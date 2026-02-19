@@ -7,18 +7,12 @@ namespace snowcoreBlog.App.Services.Background;
 /// Base background service implementation for .NET MAUI applications.
 /// This service runs continuously and performs background tasks.
 /// </summary>
-public partial class SampleBackgroundService : BackgroundService
+public partial class SampleBackgroundService(
+    ILogger<SampleBackgroundService> logger,
+    IPlatformBackgroundService platformService) : BackgroundService
 {
-    private readonly ILogger<SampleBackgroundService> _logger;
-    private readonly IPlatformBackgroundService _platformService;
-
-    public SampleBackgroundService(
-        ILogger<SampleBackgroundService> logger,
-        IPlatformBackgroundService platformService)
-    {
-        _logger = logger;
-        _platformService = platformService;
-    }
+    private readonly ILogger<SampleBackgroundService> _logger = logger;
+    private readonly IPlatformBackgroundService _platformService = platformService;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

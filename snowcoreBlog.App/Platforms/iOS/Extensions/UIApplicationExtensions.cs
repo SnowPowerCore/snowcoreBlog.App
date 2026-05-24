@@ -1,5 +1,4 @@
-﻿using UIKit;
-using IWindow = Microsoft.Maui.IWindow;
+﻿using IWindow = Microsoft.Maui.IWindow;
 
 namespace The49.Maui.Insets;
 

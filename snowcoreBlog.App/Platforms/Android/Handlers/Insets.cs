@@ -1,19 +1,13 @@
-﻿using Android.App;
-using Android.OS;
+﻿using Android.OS;
 using Android.Views;
-using AndroidX.Activity;
-using AndroidX.AppCompat.App;
-using AndroidX.Core.View;
-using Microsoft.Maui.Controls.Platform.Compatibility;
 using AWindow = Android.Views.Window;
 using Page = Microsoft.Maui.Controls.Page;
-using Shell = Microsoft.Maui.Controls.Shell;
 
 namespace snowcoreBlog.App;
 
 public class InsetsOnApplyWindowInsetsListener : Java.Lang.Object, IOnApplyWindowInsetsListener
 {
-    public WindowInsetsCompat OnApplyWindowInsets(Android.Views.View v, WindowInsetsCompat windowInsets)
+    public WindowInsetsCompat OnApplyWindowInsets(View v, WindowInsetsCompat windowInsets)
     {
         Insets.Current.SetInsets(windowInsets.ToThickness());
         return ViewCompat.OnApplyWindowInsets(v, windowInsets);

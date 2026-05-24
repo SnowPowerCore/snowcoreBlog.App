@@ -1,10 +1,7 @@
 ﻿using CoreAnimation;
-using CoreGraphics;
 using CustomShellMaui.Enum;
 using CustomShellMaui.Models;
 using CustomShellMaui.Platforms.iOS;
-using Microsoft.Maui.Platform;
-using UIKit;
 
 namespace snowcoreBlog.App.Platforms.iOS.Extensions;
 

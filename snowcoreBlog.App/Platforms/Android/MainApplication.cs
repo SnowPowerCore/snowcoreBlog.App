@@ -1,5 +1,4 @@
-﻿using Android.App;
-using Android.Runtime;
+﻿using Android.Runtime;
 
 namespace snowcoreBlog.App;
 

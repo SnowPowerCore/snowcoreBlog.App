@@ -1,8 +1,5 @@
 using CustomShellMaui.Enum;
 using CustomShellMaui.Models;
-using Nalu;
-using Plugin.Maui.BottomSheet;
-using Plugin.Maui.BottomSheet.Navigation;
 using snowcoreBlog.App.Components;
 using snowcoreBlog.App.Features.Home;
 using snowcoreBlog.App.Features.Shared;

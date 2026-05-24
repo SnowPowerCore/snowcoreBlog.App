@@ -2,13 +2,8 @@ using Android.Content.Res;
 using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Views;
-using AndroidX.Fragment.App;
 using CustomShellMaui.Enum;
 using CustomShellMaui.Platforms.Android;
-using Google.Android.Material.BottomNavigation;
-using Microsoft.Maui.Controls.Handlers.Compatibility;
-using Microsoft.Maui.Controls.Platform.Compatibility;
-using Microsoft.Maui.Platform;
 using snowcoreBlog.App.Platforms.Android.Extensions;
 using AColor = Android.Graphics.Color;
 using AResource = Android.Resource;
@@ -31,7 +26,7 @@ public class CustomShellRenderer2 : ShellRenderer
     protected override IShellBottomNavViewAppearanceTracker CreateBottomNavViewAppearanceTracker(ShellItem shellItem) =>
         new CustomShellBottomNavViewAppearanceTracker2(this, shellItem);
 
-	protected override void SwitchFragment(FragmentManager manager, global::Android.Views.View targetView, ShellItem newItem, bool animate = true)
+	protected override void SwitchFragment(FragmentManager manager, View targetView, ShellItem newItem, bool animate = true)
 	{
 		var animation = PageTransitionExtensions.GetRoot(newItem);
 

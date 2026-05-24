@@ -1,6 +1,4 @@
-﻿using Nalu;
-
-namespace snowcoreBlog.App.Features.TabThree;
+﻿namespace snowcoreBlog.App.Features.TabThree;
 
 public partial class TabThreePage : Component, IAppearingAware, IDisposable
 {

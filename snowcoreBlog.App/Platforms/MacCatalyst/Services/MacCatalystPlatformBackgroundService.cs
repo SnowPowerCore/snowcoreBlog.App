@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using snowcoreBlog.App.Services.Background;
-using UIKit;
 
 namespace snowcoreBlog.App.Platforms.MacCatalyst.Services;
 

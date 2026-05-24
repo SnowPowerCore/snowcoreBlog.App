@@ -1,7 +1,5 @@
-using Android.App;
 using Android.Content;
 using Android.OS;
-using AndroidX.Core.App;
 using Microsoft.Extensions.Logging;
 using snowcoreBlog.App.Services.Background;
 using AndroidApplication = Android.App.Application;
@@ -158,7 +156,7 @@ public class AndroidPlatformBackgroundService(
                         await _parentService._workAction(_cancellationTokenSource.Token);
                     }
                 }
-                catch (System.OperationCanceledException)
+                catch (OperationCanceledException)
                 {
                     // Service was stopped
                 }

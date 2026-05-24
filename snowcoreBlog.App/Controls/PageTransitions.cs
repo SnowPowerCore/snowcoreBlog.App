@@ -1,4 +1,3 @@
-using CustomShellMaui.Enum;
 using CustomShellMaui.Models;
 
 namespace snowcoreBlog.App;

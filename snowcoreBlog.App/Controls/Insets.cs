@@ -1,4 +1,3 @@
-using Microsoft.Maui.Handlers;
 using Page = Microsoft.Maui.Controls.Page;
 using Window = Microsoft.Maui.Controls.Window;
 

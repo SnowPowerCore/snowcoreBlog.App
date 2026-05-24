@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Nalu;
-using snowcoreBlog.App.Components;
 using snowcoreBlog.App.Features.Second;
 
 namespace snowcoreBlog.App.Features.Home;

@@ -1,8 +1,4 @@
-﻿using Foundation;
-using Nalu;
-using UIKit;
-
-namespace snowcoreBlog.App;
+﻿namespace snowcoreBlog.App;
 
 [Register(nameof(AppDelegate))]
 public class AppDelegate : MauiUIApplicationDelegate

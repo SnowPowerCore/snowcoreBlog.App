@@ -1,6 +1,4 @@
-﻿using Nalu;
-
-namespace snowcoreBlog.App.Features.TabTwo;
+﻿namespace snowcoreBlog.App.Features.TabTwo;
 
 public partial class TabTwoPage : Component, IAppearingAware, IDisposable
 {

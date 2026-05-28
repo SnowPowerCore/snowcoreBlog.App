@@ -16,20 +16,23 @@ public partial class ThirdPage(INavigationService navigation, IBottomSheetNaviga
 
     public override VisualNode Render() =>
         CustomContentPage(TranslationResources.SecondPageTitle, children:
-            VStack(
+            DelayedView(
                 VStack(
-                    ButtonKit(() => TranslationResources.GoToFirstPageText)
-                        .HorizontalOptions(LayoutOptions.Center)
-                        .ThemeKey(ApplicationTheme.Primary)
-                        .OnClicked(NavigateToFirstPageAsync),
-                    ButtonKit(() => "Bottom Sheet")
-                        .HorizontalOptions(LayoutOptions.Center)
-                        .ThemeKey(ApplicationTheme.Primary)
-                        .OnClicked(OpenBottomSheetAsync)
+                    VStack(
+                        ButtonKit(() => TranslationResources.GoToFirstPageText)
+                            .HorizontalOptions(LayoutOptions.Center)
+                            .ThemeKey(ApplicationTheme.Primary)
+                            .OnClicked(NavigateToFirstPageAsync),
+                        ButtonKit(() => "Bottom Sheet")
+                            .HorizontalOptions(LayoutOptions.Center)
+                            .ThemeKey(ApplicationTheme.Primary)
+                            .OnClicked(OpenBottomSheetAsync)
+                    )
+                    .VCenter(),
+                    BottomSheet()
                 )
-                .VCenter(),
-                BottomSheet()
             )
+            .UseActivityIndicator(true)
         )
         .Set(PageTransitions.PageTransitionProperty, new Transitions
         {

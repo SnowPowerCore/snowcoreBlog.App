@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+using HotReloadSentinel.Diagnostics;
+using MauiReactor;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Mocale;
 using snowcoreBlog.App.Extensions;
 using snowcoreBlog.App.Features.BlogAppShell;
 using snowcoreBlog.App.Features.Home;
@@ -8,6 +11,7 @@ using snowcoreBlog.App.Features.Settings;
 using snowcoreBlog.App.Features.TabThree;
 using snowcoreBlog.App.Features.TabTwo;
 using snowcoreBlog.App.Features.Third;
+using snowcoreBlog.App.Resources;
 using snowcoreBlog.App.Resources.Styles;
 using snowcoreBlog.App.Services.Background;
 
@@ -40,6 +44,19 @@ public static class MauiProgram
             .UseInsets()
             .UseBottomSheet()
             .UseFFImageLoading()
+            .UseMocale(mocale =>
+            {
+                mocale
+                    .WithConfiguration(static config =>
+                    {
+                        config.UseExternalProvider = false;
+                    })
+                    .UseEmbeddedResources(static config =>
+                    {
+                        config.ResourcesPath = "Raw.Translations";
+                        config.ResourcesAssembly = typeof(MauiProgram).Assembly;
+                    });
+            })
             .ConfigureMauiHandlers(handlers =>
             {
 #if ANDROID
@@ -75,6 +92,7 @@ public static class MauiProgram
 #if DEBUG
         builder.Configuration.AddConfiguration(GetAppSettingsConfig(TranslationResources.snowcoreBlogAppSettingsDebugJson));
         builder.Logging.AddDebug();
+        builder.UseHotReloadDiagnostics();
 #endif
 
         builder.Logging.AddEventSourceLogger();
@@ -101,11 +119,8 @@ public static class MauiProgram
     private static IConfigurationRoot GetAppSettingsConfig(string resourceUri)
     {
         using var appSettingsStream = typeof(MauiProgram).Assembly.GetManifestResourceStream(resourceUri);
-        if (appSettingsStream == null)
-        {
-            return new ConfigurationBuilder().Build();
-        }
-
-        return new ConfigurationBuilder().AddJsonStream(appSettingsStream).Build();
+        return appSettingsStream is not default(Stream)
+            ? new ConfigurationBuilder().AddJsonStream(appSettingsStream).Build()
+            : new ConfigurationBuilder().Build();
     }
 }

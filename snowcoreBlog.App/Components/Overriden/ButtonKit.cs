@@ -43,8 +43,8 @@ public partial class ButtonKit : Component
                 _leftImage?.Invoke(),
 
                 _leftImageSource == null ? null :
-                Image(_leftImageSource)
-                    .VCenter(),
+                    Image(_leftImageSource)
+                        .VCenter(),
 
                 _textFunc is not default(Func<string>)
                     ? Label(_textFunc)
@@ -61,8 +61,8 @@ public partial class ButtonKit : Component
                 _rightImage?.Invoke(),
 
                 _rightImageSource == null ? null :
-                Image(_rightImageSource)
-                    .VCenter()
+                    Image(_rightImageSource)
+                        .VCenter()
             )
             .Margin(16, 0)
             .OnTapped(_onClicked)

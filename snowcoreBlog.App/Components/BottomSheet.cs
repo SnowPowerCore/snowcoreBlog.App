@@ -24,7 +24,7 @@ public static class BottomSheetNavigationServiceMauiReactorExtensions
         var templateHost = TemplateHost.Create(contentRender());
         var bottomSheet = (Plugin.Maui.BottomSheet.IBottomSheet)templateHost.NativeElement.EnsureNotNull();
 
-        bottomSheet.ClosedCommand = new Command(OnBottomSheetClosed)!;
+        bottomSheet.ClosedCommand = new Command(OnBottomSheetClosed);
         void OnBottomSheetClosed()
         {
             (templateHost as IHostElement)?.Stop();

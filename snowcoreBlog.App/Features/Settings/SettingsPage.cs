@@ -1,4 +1,10 @@
-﻿using snowcoreBlog.App.Features.Home;
+using System.ComponentModel;
+using MauiReactor;
+using Nalu;
+using ReactorTheme.Styles;
+using snowcoreBlog.App.Components;
+using snowcoreBlog.App.Features.Home;
+using snowcoreBlog.App.Resources;
 
 namespace snowcoreBlog.App.Features.Settings;
 
@@ -11,9 +17,12 @@ public partial class SettingsPage : Component, IAppearingAware, IDisposable
 
     public override VisualNode Render() =>
         CustomContentPage(title: TranslationResources.SettingsPageTitle, children:
-            ButtonKit(() => TranslationResources.GoToRootPageText)
-                .ThemeKey(ApplicationTheme.Primary)
-                .OnClicked(NavigateToRootAsync)
+            DelayedView(
+                ButtonKit(() => TranslationResources.GoToRootPageText)
+                    .ThemeKey(ApplicationTheme.Primary)
+                    .OnClicked(NavigateToRootAsync)
+            )
+            .UseActivityIndicator(true)
         );
         
     public ValueTask OnAppearingAsync()

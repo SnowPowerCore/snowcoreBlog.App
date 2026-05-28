@@ -1,5 +1,10 @@
+using MauiReactor;
+using Nalu;
+using ReactorTheme.Styles;
+using snowcoreBlog.App.Components;
 using snowcoreBlog.App.Features.Home;
 using snowcoreBlog.App.Features.Third;
+using snowcoreBlog.App.Resources;
 
 namespace snowcoreBlog.App.Features.Second;
 
@@ -12,17 +17,20 @@ public partial class SecondPage(INavigationService navigation, INavigationServic
 
     public override VisualNode Render() =>
         CustomContentPage(TranslationResources.SecondPageTitle, children:
-            VStack(
-                ButtonKit(() => TranslationResources.GoToFirstPageText)
-                    .HorizontalOptions(LayoutOptions.Center)
-                    .ThemeKey(ApplicationTheme.Primary)
-                    .OnClicked(NavigateToFirstPageAsync),
+            DelayedView(
+                VStack(
+                    ButtonKit(() => TranslationResources.GoToFirstPageText)
+                        .HorizontalOptions(LayoutOptions.Center)
+                        .ThemeKey(ApplicationTheme.Primary)
+                        .OnClicked(NavigateToFirstPageAsync),
 
-                ButtonKit(() => TranslationResources.GoToThirdPageText)
-                    .ThemeKey(ApplicationTheme.Primary)
-                    .OnClicked(NavigateToThirdPageAsync)
+                    ButtonKit(() => TranslationResources.GoToThirdPageText)
+                        .ThemeKey(ApplicationTheme.Primary)
+                        .OnClicked(NavigateToThirdPageAsync)
+                )
+                .VCenter()
             )
-            .VCenter()
+            .UseActivityIndicator(true)
         );
 
     public ValueTask OnAppearingAsync()

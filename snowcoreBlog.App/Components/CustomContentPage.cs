@@ -39,8 +39,8 @@ public partial class CustomContentPage : Component<CustomContentPageState>
                 ContentView()
                     .Background(new LinearGradientBrush(
                         [
-                            new GradientStop(Theme.IsDarkTheme ? ApplicationTheme.NeutralDarkDarkest.WithAlpha(0.6f) : ApplicationTheme.NeutralLightLightest.WithAlpha(0.6f), 1f),
-                            new GradientStop(Theme.IsDarkTheme ? ApplicationTheme.NeutralDarkDarkest.WithAlpha(0.6f) : ApplicationTheme.NeutralLightLightest.WithAlpha(0.6f), 0.5f),
+                            new GradientStop(Theme.IsDarkTheme ? ApplicationTheme.NeutralDarkDarkest.WithAlpha(0.7f) : ApplicationTheme.NeutralLightLightest.WithAlpha(0.7f), 1f),
+                            new GradientStop(Theme.IsDarkTheme ? ApplicationTheme.NeutralDarkDarkest.WithAlpha(0.7f) : ApplicationTheme.NeutralLightLightest.WithAlpha(0.7f), 0.5f),
                             new GradientStop(Theme.IsDarkTheme ? ApplicationTheme.NeutralDarkDarkest.WithAlpha(0.001f) : ApplicationTheme.NeutralLightLightest.WithAlpha(0.001f), 0f)
                         ],
                         startPoint: new Point(0.5, 0),

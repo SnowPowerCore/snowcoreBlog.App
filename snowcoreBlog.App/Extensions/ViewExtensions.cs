@@ -1,5 +1,6 @@
 using snowcoreBlog.App.Components;
 using snowcoreBlog.App.Components.Overriden;
+using snowcoreBlog.App.Resources.Styles;
 
 namespace snowcoreBlog.App.Extensions;
 
@@ -17,6 +18,8 @@ public static class ViewExtensions
             .İsPreviousPageButtonVisible(isBackButtonVisible?.Invoke())
             .Content(() => children)
             .OnNavigatedBack(onNavigatedBack);
+
+    public static DelayedView DelayedView(VisualNode children) => new DelayedView(children).AccentColor(InternalCustomApplicationTheme.PrimaryColor);
 
     public static BottomSheet BottomSheet(params IEnumerable<VisualNode?>? children) => new(children);
 

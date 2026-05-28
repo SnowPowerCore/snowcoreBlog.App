@@ -11,7 +11,7 @@ public partial class TabThreePage : Component, IAppearingAware, IDisposable
         Console.WriteLine($"Navigated to {nameof(TabThreePage)}");
         return ValueTask.CompletedTask;
     }
-        
+
     public void Dispose()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

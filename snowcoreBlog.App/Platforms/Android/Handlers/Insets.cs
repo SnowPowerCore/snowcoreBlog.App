@@ -1,7 +1,12 @@
-﻿using Android.OS;
+﻿using Android.App;
+using Android.OS;
 using Android.Views;
+using AndroidX.Activity;
+using AndroidX.AppCompat.App;
+using AndroidX.Core.View;
 using AWindow = Android.Views.Window;
 using Page = Microsoft.Maui.Controls.Page;
+using View = Android.Views.View;
 
 namespace snowcoreBlog.App;
 

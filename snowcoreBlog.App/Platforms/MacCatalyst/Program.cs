@@ -1,4 +1,6 @@
-﻿namespace snowcoreBlog.App;
+﻿using UIKit;
+
+namespace snowcoreBlog.App;
 
 public class Program
 {

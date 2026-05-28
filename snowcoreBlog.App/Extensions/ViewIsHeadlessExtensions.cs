@@ -1,3 +1,5 @@
+using MauiReactor;
+
 namespace snowcoreBlog.App.Extensions;
 
 public static class ViewIsHeadlessExtensions

@@ -2,13 +2,19 @@ using Android.Content.Res;
 using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Views;
+using AndroidX.Fragment.App;
 using CustomShellMaui.Enum;
 using CustomShellMaui.Platforms.Android;
+using Google.Android.Material.BottomNavigation;
+using Microsoft.Maui.Controls.Handlers.Compatibility;
+using Microsoft.Maui.Controls.Platform.Compatibility;
+using Microsoft.Maui.Platform;
 using snowcoreBlog.App.Platforms.Android.Extensions;
 using AColor = Android.Graphics.Color;
 using AResource = Android.Resource;
 using MauiColor = Microsoft.Maui.Graphics.Color;
 using ShellItem = Microsoft.Maui.Controls.ShellItem;
+using View = Android.Views.View;
 
 namespace snowcoreBlog.App.Platforms.Android.Handlers;
 

@@ -1,8 +1,12 @@
+using CommunityToolkit.Maui;
+using FFImageLoading.Maui;
 using HotReloadSentinel.Diagnostics;
 using MauiReactor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Mocale;
+using Plugin.Maui.BottomSheet.Hosting;
+using ReactorTheme;
 using snowcoreBlog.App.Extensions;
 using snowcoreBlog.App.Features.BlogAppShell;
 using snowcoreBlog.App.Features.Home;
@@ -112,7 +116,7 @@ public static class MauiProgram
 
         // Register the main background service
         builder.Services.AddHostedService<SampleBackgroundService>();
-        
+
         return builder.Build();
     }
 

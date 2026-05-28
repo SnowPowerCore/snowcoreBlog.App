@@ -1,7 +1,11 @@
+using MauiReactor;
+using Nalu;
+using Nalu.Reactor;
 using snowcoreBlog.App.Features.Home;
 using snowcoreBlog.App.Features.Settings;
 using snowcoreBlog.App.Features.TabThree;
 using snowcoreBlog.App.Features.TabTwo;
+using snowcoreBlog.App.Resources;
 
 namespace snowcoreBlog.App.Features.BlogAppShell;
 

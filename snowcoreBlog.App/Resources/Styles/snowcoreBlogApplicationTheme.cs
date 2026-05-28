@@ -1,3 +1,5 @@
+using MauiReactor;
+
 namespace snowcoreBlog.App.Resources.Styles;
 
 public class snowcoreBlogApplicationTheme : InternalCustomApplicationTheme

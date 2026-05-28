@@ -1,4 +1,6 @@
-﻿namespace snowcoreBlog.App;
+﻿using Foundation;
+
+namespace snowcoreBlog.App;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

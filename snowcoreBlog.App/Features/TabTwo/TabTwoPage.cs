@@ -1,4 +1,7 @@
-﻿namespace snowcoreBlog.App.Features.TabTwo;
+﻿using MauiReactor;
+using Nalu;
+
+namespace snowcoreBlog.App.Features.TabTwo;
 
 public partial class TabTwoPage : Component, IAppearingAware, IDisposable
 {

@@ -1,4 +1,7 @@
-﻿namespace snowcoreBlog.App.Features.TabThree;
+﻿using MauiReactor;
+using Nalu;
+
+namespace snowcoreBlog.App.Features.TabThree;
 
 public partial class TabThreePage : Component, IAppearingAware, IDisposable
 {

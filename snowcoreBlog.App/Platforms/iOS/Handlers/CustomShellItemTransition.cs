@@ -1,5 +1,6 @@
 ﻿using CustomShellMaui.Enum;
 using CustomShellMaui.Platforms.iOS;
+using Microsoft.Maui.Controls.Platform.Compatibility;
 using snowcoreBlog.App.Platforms.iOS.Extensions;
 
 namespace snowcoreBlog.App.Platforms.iOS.Handlers;

@@ -1,3 +1,5 @@
+using Microsoft.Maui.LifecycleEvents;
+
 namespace snowcoreBlog.App.Extensions;
 
 public static class InsetsAppBuilderExtensions

@@ -6,8 +6,18 @@ using Android.OS;
 using Android.Util;
 using Android.Views;
 using Android.Views.Animations;
+using Android.Widget;
+using AndroidX.Core.View;
+using AndroidX.Fragment.App;
 using CustomShellMaui.Platforms.Android;
+using Google.Android.Material.BottomNavigation;
+using Microsoft.Maui.Controls.Handlers.Compatibility;
+using Microsoft.Maui.Controls.Platform.Compatibility;
+using Microsoft.Maui.Platform;
 using snowcoreBlog.App.Platforms.Android.Extensions;
+using Xamarin.Android.BlurView;
+using Xamarin.Android.BlurView.Interfaces;
+using Xamarin.Android.BlurView.Renders;
 using AColor = Android.Graphics.Color;
 using AndroidContent = Android.Content.Res;
 using AResource = Android.Resource;
@@ -609,7 +619,7 @@ public class CustomShellItemRenderer2(IShellContext shellContext) : ShellItemRen
 
     private AColor GetSelectedItemBackground()
     {
-        var tabBarColor = MauiControls.Shell.GetTabBarBackgroundColor(ShellItem);
+        var tabBarColor = Shell.GetTabBarBackgroundColor(ShellItem);
         var baseColor = tabBarColor ?? ShellRenderer.DefaultBackgroundColor;
         var platformColor = baseColor.ToPlatform();
         var tinted = AColor.Argb(220, platformColor.R, platformColor.G, platformColor.B);

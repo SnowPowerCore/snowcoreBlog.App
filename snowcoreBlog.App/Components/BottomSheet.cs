@@ -1,4 +1,8 @@
-﻿namespace snowcoreBlog.App.Components;
+﻿using MauiReactor;
+using MauiReactor.Internals;
+using Plugin.Maui.BottomSheet.Navigation;
+
+namespace snowcoreBlog.App.Components;
 
 [Scaffold(typeof(Plugin.Maui.BottomSheet.BottomSheet))]
 public partial class BottomSheet

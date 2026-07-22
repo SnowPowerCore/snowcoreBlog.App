@@ -1,5 +1,5 @@
 using MauiReactor;
-using Nalu;
+using Nalu.Interfaces;
 using ReactorTheme.Styles;
 using snowcoreBlog.App.Extensions;
 
@@ -75,7 +75,7 @@ public partial class CustomContentPage : Component<CustomContentPageState>
                             )
                             .HeightRequest(32)
                             .IsVisible(_isPreviousPageButtonVisible ?? State.IsBackButtonVisible ?? false)
-                            .OnTapped(_onNavigatedBack ?? (() => _navigation.GoToAsync(Nalu.Navigation.Relative().Pop())))
+                            .OnTapped(_onNavigatedBack ?? (() => _navigation.GoToAsync(Nalu.NavigationInfo.Navigation.Relative().Pop())))
                     )
                     .IsHeadless()
                 )

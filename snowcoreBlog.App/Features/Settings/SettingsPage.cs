@@ -1,5 +1,5 @@
 using MauiReactor;
-using Nalu;
+using Nalu.Interfaces;
 using ReactorTheme.Styles;
 using snowcoreBlog.App.Components;
 using snowcoreBlog.App.Features.Home;
@@ -31,7 +31,7 @@ public partial class SettingsPage : Component, IAppearingAware, IDisposable
     }
 
     public Task NavigateToRootAsync() =>
-        _navigation.GoToAsync(Nalu.Navigation.Absolute().Root<HomePage>());
+        _navigation.GoToAsync(Nalu.NavigationInfo.Navigation.Absolute().Root<HomePage>());
         
     public void Dispose()
     {

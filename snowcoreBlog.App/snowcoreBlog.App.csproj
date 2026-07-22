@@ -17,7 +17,8 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<MocaleResourcePath>Resources\Raw\Translations\*.json</MocaleResourcePath>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<MocaleResourcePath>Resources\Locales\*.json</MocaleResourcePath>
 
 		<ApplicationTitle>snowcore's Blog</ApplicationTitle>
 		<ApplicationId>com.snowcore.blogapp</ApplicationId>
@@ -33,6 +34,12 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
+
+	<!-- Import local generator props/targets when developing the generator project locally
+		 This mirrors what the NuGet package would import (build/*.props & build/*.targets)
+		 and ensures the `Localize` item and its metadata are visible to the compiler. -->
+	<Import Project="..\..\..\kli.Localize.Generator\kli.Localize.props" Condition="Exists('..\..\..\kli.Localize.Generator\kli.Localize.props')" />
+	<Import Project="..\..\..\kli.Localize.Generator\kli.Localize.targets" Condition="Exists('..\..\..\kli.Localize.Generator\kli.Localize.targets')" />
 
 	<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios'">
 	  	<CodesignKey>Apple Development: Created via API (N7NVVR3LT3)</CodesignKey>
@@ -52,6 +59,7 @@
 		<RuntimeHostConfigurationOption Include="MauiReactor.HotReload" Value="true" Trim="false" />
 		<RuntimeHostConfigurationOption Include="Nalu.Navigation.Reactor.HotReload" Value="true" Trim="false" />
 	</ItemGroup>
+
 	<ItemGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|net9.0-ios'">
 		<RuntimeHostConfigurationOption Include="MauiReactor.HotReload" Value="false" Trim="true" />
 		<RuntimeHostConfigurationOption Include="Nalu.Navigation.Reactor.HotReload" Value="false" Trim="true" />
@@ -72,10 +80,10 @@
 		<PackageReference Include="Reactor.Maui" Version="3.0.*" />
 		<PackageReference Include="ReactorTheme" Version="1.0.0" />
 		<PackageReference Include="Nalu.Maui.Core" Version="10.6.1" />
-		<!-- <PackageReference Include="NaluNavigation.Reactor" Version="1.0.2" /> -->
+		<!-- <PackageReference Include="NaluNavigation.Reactor" Version="1.5.2" /> -->
 		<PackageReference Include="Mocale" Version="1.0.208-pre" />
 		<PackageReference Include="Mocale.SourceGenerators" Version="1.0.208-pre" />
-    	<PackageReference Include="kli.Localize" Version="2.0.4" />
+		<PackageReference Include="Mocale.Cache.SQLite" Version="1.0.208-pre" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net9.0-android'">
@@ -83,7 +91,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\NaluReactorNavigation\Nalu.Reactor.Navigation\Nalu.Reactor.Navigation.csproj" />
+		<ProjectReference Include="..\..\..\kli.Localize.Generator\kli.Localize.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\..\..\NaluReactorNavigation\src\Nalu.Reactor.Navigation.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -97,12 +106,15 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<DependentUpon>appsettings.json</DependentUpon>
 		</EmbeddedResource>
-		<Localize Include="Resources\Raw\Translations\TranslationResources_*.json" NamespaceName="snowcoreBlog.App.Resources" ClassName="TranslationResources" NeutralCulture="en" />
+		<Localize Include="Resources\Locales\*.json" NamespaceName="snowcoreBlog.App.Resources" ClassName="TranslationResources" NeutralCulture="en" />
 		<Compile Update="**\*.state.cs">
 			<DependentUpon>$([System.String]::Copy('%(Filename)').Replace('.state','.cs'))</DependentUpon>
 		</Compile>
 		<Compile Update="**\*.props.cs">
 			<DependentUpon>$([System.String]::Copy('%(Filename)').Replace('.props','.cs'))</DependentUpon>
+		</Compile>
+		<Compile Update="**\*.parameter.cs">
+			<DependentUpon>$([System.String]::Copy('%(Filename)').Replace('.parameter','.cs'))</DependentUpon>
 		</Compile>
 	</ItemGroup>
 

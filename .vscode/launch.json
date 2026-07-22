@@ -28,7 +28,7 @@
             }
         },
         {
-            "name": "Android Hot Reload",
+            "name": "Android MauiReactor Hot Reload (Full)",
             "type": "coreclr",
             "request": "launch",
             "program": "dotnet",
@@ -39,14 +39,14 @@
                 "-d",
                 "${workspaceFolder}\\snowcoreBlog.App",
                 "-m",
-                "Slim"
+                "Full"
             ],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "console": "integratedTerminal"
         },
         {
-            "name": "iOS Hot Reload",
+            "name": "iOS MauiReactor Hot Reload (Full)",
             "type": "coreclr",
             "request": "launch",
             "program": "dotnet",
@@ -57,11 +57,60 @@
                 "-d",
                 "${workspaceFolder}\\snowcoreBlog.App",
                 "-m",
-                "Slim"
+                "Full"
             ],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Windows MauiReactor Hot Reload (Full)",
+            "type": "coreclr",
+            "request": "launch",
+            "noDebug": true,
+            "program": "dotnet",
+            "args": [
+                "maui-reactor",
+                "-f",
+                "net9.0-windows10.0.19041.0",
+                "-d",
+                "${workspaceFolder}\\snowcoreBlog.App",
+                "-m",
+                "Full"
+            ],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Windows App (RunCopy)",
+            "type": "coreclr",
+            "request": "launch",
+            "noDebug": true,
+            "preLaunchTask": "prepare-windows-runcopy",
+            "program": "${workspaceFolder}\\snowcoreBlog.App\\bin\\RunCopy\\net9.0-windows10.0.19041.0\\win10-x64\\snowcoreBlog.App.exe",
+            "cwd": "${workspaceFolder}\\snowcoreBlog.App\\bin\\RunCopy\\net9.0-windows10.0.19041.0\\win10-x64",
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "requireExactSource": false,
+            "enableStepFiltering": true,
+            "justMyCode": false
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Windows App + MauiReactor Full Hot Reload",
+            "configurations": [
+                "Windows MauiReactor Hot Reload (Full)",
+                "Windows Debug (Hot Reload)"
+            ]
+        },
+        {
+            "name": "Windows RunCopy App + MauiReactor Full Hot Reload",
+            "configurations": [
+                "Windows MauiReactor Hot Reload (Full)",
+                "Windows App (RunCopy)"
+            ]
         }
     ]
 }

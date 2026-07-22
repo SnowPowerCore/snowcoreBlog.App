@@ -1,5 +1,5 @@
 using MauiReactor;
-using Nalu;
+using Nalu.Interfaces;
 using ReactorTheme.Styles;
 using snowcoreBlog.App.Components;
 using snowcoreBlog.App.Features.Home;
@@ -8,7 +8,7 @@ using snowcoreBlog.App.Resources;
 
 namespace snowcoreBlog.App.Features.Second;
 
-public partial class SecondPage(INavigationService navigation, INavigationServiceProvider navigationServiceProvider) : ComponentWithProps<SecondPageProps>, IAppearingAware, ILeavingGuard, IDisposable
+public partial class SecondPage(INavigationService navigation, INavigationServiceProvider navigationServiceProvider) : Component, IAppearingAware<SecondPageProps>, ILeavingGuard, IDisposable
 {
     private bool _disposed = false;
 
@@ -33,9 +33,9 @@ public partial class SecondPage(INavigationService navigation, INavigationServic
             .UseActivityIndicator(true)
         );
 
-    public ValueTask OnAppearingAsync()
+    public ValueTask OnAppearingAsync(SecondPageProps intent)
     {
-        Console.WriteLine($"Navigated to {nameof(SecondPage)} with Id: {Props.Id}");
+        Console.WriteLine($"Navigated to {nameof(SecondPage)} with Id: {intent.Id}");
         _ = _navigationServiceProvider.ContextPage;
         return ValueTask.CompletedTask;
     }
@@ -44,10 +44,10 @@ public partial class SecondPage(INavigationService navigation, INavigationServic
         ValueTask.FromResult(true);
 
     private Task NavigateToFirstPageAsync() =>
-        _navigation.GoToAsync(Nalu.Navigation.Relative().Pop().WithPropsDelegate<HomePageProps>(o => o.PopInfo = "Hello world!"));
+        _navigation.GoToAsync(Nalu.NavigationInfo.Navigation.Relative().Pop().WithIntent(new HomePageProps { PopInfo = TranslationResources.HelloWorld }));
 
     private Task NavigateToThirdPageAsync() =>
-        _navigation.GoToAsync(Nalu.Navigation.Relative().Push<ThirdPage>());
+        _navigation.GoToAsync(Nalu.NavigationInfo.Navigation.Relative().Push<ThirdPage>());
 
     public void Dispose()
     {

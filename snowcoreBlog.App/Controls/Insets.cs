@@ -120,12 +120,16 @@ public partial class Insets : BindableObject
                 UpdateEdgeToEdge(page);
                 UpdateStatusBarStyle(page);
             }
-            page.Appearing += OnPageAppearing;
-
-            void OnPageAppearing(object sender, EventArgs e)
+            else
             {
-                UpdateEdgeToEdge(page);
-                UpdateStatusBarStyle(page);
+                void OnPageAppearing(object sender, EventArgs e)
+                {
+                    page.Appearing -= OnPageAppearing;
+                    UpdateEdgeToEdge(page);
+                    UpdateStatusBarStyle(page);
+                }
+
+                page.Appearing += OnPageAppearing;
             }
         });
         PlatformInit(mainPage);

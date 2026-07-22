@@ -1,5 +1,5 @@
 using MauiReactor;
-using Nalu.Reactor;
+using Nalu;
 using snowcoreBlog.App.Components;
 using snowcoreBlog.App.Components.Overriden;
 using snowcoreBlog.App.Resources.Styles;
@@ -43,7 +43,8 @@ public static class ViewExtensions
 
     public static ButtonKit ButtonKit(Func<string>? textFunc = null) => new ButtonKit().TextFunc(textFunc);
 
-    public static NaluReactorShell AppShellControl(params IEnumerable<VisualNode?>? children) => new(children);
+    public static NavigationHost NavigationHost(params IEnumerable<VisualNode?>? children) => new(() =>
+        new MauiReactor.Shell(children));
 
     public static MauiReactor.ContentPage ShellNavBarIsVisible(this MauiReactor.ContentPage contentPage, bool value) =>
         contentPage.Set(MauiControls.Shell.NavBarIsVisibleProperty, value);

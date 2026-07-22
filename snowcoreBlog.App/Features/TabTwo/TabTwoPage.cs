@@ -1,5 +1,6 @@
 ﻿using MauiReactor;
-using Nalu;
+using snowcoreBlog.App.Resources;
+using Nalu.Interfaces;
 
 namespace snowcoreBlog.App.Features.TabTwo;
 
@@ -7,7 +8,7 @@ public partial class TabTwoPage : Component, IAppearingAware, IDisposable
 {
     private bool _disposed = false;
 
-    public override VisualNode Render() => CustomContentPage("Tab Two");
+    public override VisualNode Render() => CustomContentPage(TranslationResources.TabTwoTitle);
         
     public ValueTask OnAppearingAsync()
     {

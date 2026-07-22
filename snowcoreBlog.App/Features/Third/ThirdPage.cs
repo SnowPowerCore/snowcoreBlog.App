@@ -1,7 +1,7 @@
 using CustomShellMaui.Enum;
 using CustomShellMaui.Models;
 using MauiReactor;
-using Nalu;
+using Nalu.Interfaces;
 using Plugin.Maui.BottomSheet;
 using Plugin.Maui.BottomSheet.Navigation;
 using ReactorTheme.Styles;
@@ -29,13 +29,12 @@ public partial class ThirdPage(INavigationService navigation, IBottomSheetNaviga
                             .HorizontalOptions(LayoutOptions.Center)
                             .ThemeKey(ApplicationTheme.Primary)
                             .OnClicked(NavigateToFirstPageAsync),
-                        ButtonKit(() => "Bottom Sheet")
+                        ButtonKit(() => TranslationResources.BottomSheetText)
                             .HorizontalOptions(LayoutOptions.Center)
                             .ThemeKey(ApplicationTheme.Primary)
                             .OnClicked(OpenBottomSheetAsync)
                     )
-                    .VCenter(),
-                    BottomSheet()
+                    .VCenter()
                 )
             )
             .UseActivityIndicator(true)
@@ -69,49 +68,41 @@ public partial class ThirdPage(INavigationService navigation, IBottomSheetNaviga
         return ValueTask.CompletedTask;
     }
     
+    public ValueTask<bool> CanLeaveAsync() =>
+        ValueTask.FromResult(true);
+
+    private Task NavigateToFirstPageAsync() =>
+        _navigation.GoToAsync(Nalu.NavigationInfo.Navigation.Absolute().Root<HomePage>().WithIntent(new HomePageProps { PopInfo = TranslationResources.HelloWorld }));
+
     private Task OpenBottomSheetAsync() =>
         _bottomSheetNavigation.OpenBottomSheetAsync(() =>
             BottomSheet(new TestSheetContent()).HasHandle(false).Header(SheetHeader()).ShowHeader(true));
 
-    private BottomSheetHeader SheetHeader()
-    {
-        var sheetHeader = new BottomSheetHeader
+    private static BottomSheetHeader SheetHeader() =>
+        new()
         {
             Style = new BottomSheetHeaderStyle()
             {
                 CloseButtonTintColor = Colors.LightBlue
             },
-            ContentTemplate = new DataTemplate(SheetHandle)
-        };
-        return sheetHeader;
-    }
-
-    private MauiControls.Border SheetHandle()
-    {
-        return new()
-        {
-            AutomationId = AutomationIds.Handle,
-            Margin = new(0, 10, 0, 10),
-            WidthRequest = 40,
-            HeightRequest = 7.5,
-            Content = new MauiControls.BoxView()
+            Content = new MauiControls.Border
             {
+                AutomationId = AutomationIds.Handle,
+                Margin = new(0, 10, 0, 10),
                 WidthRequest = 40,
-                Color = Colors.Orange,
-            },
-            StrokeShape = new MauiControls.Shapes.RoundRectangle()
-            {
-                CornerRadius = new(20),
-            },
-            Stroke = Colors.Orange,
+                HeightRequest = 7.5,
+                Content = new MauiControls.BoxView()
+                {
+                    WidthRequest = 40,
+                    Color = Colors.Orange,
+                },
+                StrokeShape = new MauiControls.Shapes.RoundRectangle()
+                {
+                    CornerRadius = new(20),
+                },
+                Stroke = Colors.Orange,
+            }
         };
-    }
-
-    public ValueTask<bool> CanLeaveAsync() =>
-        ValueTask.FromResult(true);
-
-    private Task NavigateToFirstPageAsync() =>
-        _navigation.GoToAsync(Nalu.Navigation.Absolute().Root<HomePage>().WithPropsDelegate<HomePageProps>(o => o.PopInfo = "Hello world!"));
 
     public void Dispose()
     {

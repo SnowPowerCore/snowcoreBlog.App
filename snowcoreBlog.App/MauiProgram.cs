@@ -5,6 +5,9 @@ using MauiReactor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Mocale;
+using Mocale.Cache.SQLite;
+using Nalu.Extensions;
+using Nalu.Interfaces;
 using Plugin.Maui.BottomSheet.Hosting;
 using ReactorTheme;
 using snowcoreBlog.App.Extensions;
@@ -57,8 +60,12 @@ public static class MauiProgram
                     })
                     .UseEmbeddedResources(static config =>
                     {
-                        config.ResourcesPath = "Raw.Translations";
+                        config.ResourcesPath = "Locales";
                         config.ResourcesAssembly = typeof(MauiProgram).Assembly;
+                    })
+                    .UseSqliteCache(static config =>
+                    {
+                        config.UpdateInterval = TimeSpan.FromMinutes(15);
                     });
             })
             .ConfigureMauiHandlers(handlers =>
@@ -80,19 +87,19 @@ public static class MauiProgram
             .UseNaluNavigation(configure: configurator =>
             {
                 configurator
-                    .SetRoot<HomePage>()
-                    .AddPage<SecondPage>()
-                    .AddPage<TabTwoPage>()
-                    .AddPage<ThirdPage>()
-                    .AddPage<TabThreePage>()
-                    .AddPage<SettingsPage>()
-                    .WithLeakDetectorState(Nalu.NavigationLeakDetectorState.EnabledWithDebugger);
+                    .AddComponent<HomePage>()
+                    .AddComponent<SecondPage>()
+                    .AddComponent<TabTwoPage>()
+                    .AddComponent<ThirdPage>()
+                    .AddComponent<TabThreePage>()
+                    .AddComponent<SettingsPage>()
+                    .WithLeakDetectorState(NavigationLeakDetectorState.EnabledWithDebugger);
             });
 
         builder.Configuration.AddConfiguration(GetAppSettingsConfig(TranslationResources.snowcoreBlogAppSettingsJson));
         builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
         builder.Logging.AddConsole();
-
+        
 #if DEBUG
         builder.Configuration.AddConfiguration(GetAppSettingsConfig(TranslationResources.snowcoreBlogAppSettingsDebugJson));
         builder.Logging.AddDebug();

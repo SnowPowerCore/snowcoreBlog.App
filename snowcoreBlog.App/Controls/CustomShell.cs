@@ -1,6 +1,6 @@
 namespace snowcoreBlog.App.Controls;
 
-public partial class CustomShell : MauiControls.Shell
+public partial class CustomShell : Shell
 {
     // Tab bar appearance
     public static readonly BindableProperty TabBarCornerRadiusProperty = BindableProperty.Create(

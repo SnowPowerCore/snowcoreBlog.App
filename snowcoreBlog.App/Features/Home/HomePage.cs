@@ -1,18 +1,23 @@
-using System.Globalization;
+﻿using System.Globalization;
 using MauiReactor;
+using MauiReactor.Parameters;
 using Microsoft.Extensions.Configuration;
 using Mocale.Abstractions;
-using Nalu;
+using Mocale.Translations;
+using Nalu.Interfaces;
 using ReactorTheme.Styles;
 using snowcoreBlog.App.Components;
+using snowcoreBlog.App.Features.BlogAppShell;
 using snowcoreBlog.App.Features.Second;
 using snowcoreBlog.App.Resources;
 
 namespace snowcoreBlog.App.Features.Home;
 
-public partial class HomePage : Component<HomePageState, HomePageProps>, IAppearingAware, IDisposable
+public partial class HomePage : Component<HomePageState>, IAppearingAware<HomePageProps>, IDisposable
 {
     private bool _disposed = false;
+    
+    private IParameter<AppShellSettings> _appShellSettings;
 
     [Inject]
     private readonly IConfiguration _configuration;
@@ -26,8 +31,11 @@ public partial class HomePage : Component<HomePageState, HomePageProps>, IAppear
     [Inject]
     private readonly ILocalizationManager _localizationManager;
 
-    public override VisualNode Render() =>
-        CustomContentPage(title: TranslationResources.HomeShellTitle, children:
+    public override VisualNode Render()
+    {
+        _appShellSettings = GetParameter<AppShellSettings>();
+
+        return CustomContentPage(title: _translatorManager.Translate(TranslationKeys.HomeShellTitle), children:
             DelayedView(
                 ScrollView(
                     VStack(
@@ -35,26 +43,30 @@ public partial class HomePage : Component<HomePageState, HomePageProps>, IAppear
                             .DownsampleToViewSize(true)
                             .HeightRequest(200)
                             .HCenter()
-                            .Set(SemanticProperties.DescriptionProperty, _translatorManager.Translate(TranslationResources.SemanticDotNetBotDesc)),
+                            .Set(SemanticProperties.DescriptionProperty, _translatorManager.Translate(TranslationKeys.SemanticDotNetBotDesc)),
 
                         Label(_configuration[TranslationResources.AppNameKey])
                             .ThemeKey(ApplicationTheme.H1)
                             .HCenter(),
 
-                        Label(_translatorManager.Translate(TranslationResources.SubheaderText))
+                        Label(_translatorManager.Translate(TranslationKeys.SubheaderText))
                             .ThemeKey(ApplicationTheme.H3)
                             .HCenter(),
 
-                        Label("What the hell is lorem ipsum?")
+                        Label(_translatorManager.Translate(TranslationKeys.HomeLoremTitle))
                             .FontSize(24)
                             .LineHeight(1.5),
 
-                        Label("For those of you not of a design disposition, lorem ipsum is dummy text used as a placeholder for the real text of a website or other mockup during the design process. Although it may look like Latin, it’s actually just gibberish designed to be ignored. Any time you see lorem ipsum, just think “real text will be here eventually”. It looks like this "),
+                        Label(_translatorManager.Translate(TranslationKeys.HomeLoremExplain)),
 
-                        Label("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exercitation ullam corper suscipit lobortis nisl ut aliquip ex ea commodo consequat."),
+                        Label(_translatorManager.Translate(TranslationKeys.HomeLoremSample)),
 
                         ButtonKit(GetClickedTimes())
                             .ThemeKey(ApplicationTheme.Primary)
+                            .OnClicked(NavigateToSecondPageAsync),
+
+                        ButtonKit(GetClickedTimes())
+                            .ThemeKey(ApplicationTheme.Secondary)
                             .OnClicked(NavigateToSecondPageAsync),
 
                         ButtonKit(GetClickedTimes())
@@ -81,13 +93,17 @@ public partial class HomePage : Component<HomePageState, HomePageProps>, IAppear
                             .ThemeKey(ApplicationTheme.Primary)
                             .OnClicked(NavigateToSecondPageAsync),
 
-                        ButtonKit(GetClickedTimes())
+                        ButtonKit(() => TranslationResources.SwitchToRussianText)
                             .ThemeKey(ApplicationTheme.Primary)
-                            .OnClicked(NavigateToSecondPageAsync),
+                            .OnClicked(ChangeCultureToRussianAsync),
 
-                        ButtonKit("Switch to Russian")
+                        ButtonKit(() => TranslationResources.SwitchToTurkishText)
                             .ThemeKey(ApplicationTheme.Primary)
-                            .OnClicked(ChangeCultureToRussianAsync)
+                            .OnClicked(ChangeCultureToTurkishAsync),
+
+                        ButtonKit(() => TranslationResources.ResetLanguageText)
+                            .ThemeKey(ApplicationTheme.Primary)
+                            .OnClicked(ResetLanguageAsync)
                     )
                     .VCenter()
                     .Spacing(25)
@@ -97,34 +113,44 @@ public partial class HomePage : Component<HomePageState, HomePageProps>, IAppear
             )
             .UseActivityIndicator(true)
         );
+    }
 
     private Func<string> GetClickedTimes() =>
         State.Counter == 0
-            ? () => _translatorManager.Translate(TranslationResources.ButtonStaticText)
-            : () => string.Format(_translatorManager.Translate(TranslationResources.ButtonClickedTimesText), State.Counter);
+            ? () => _translatorManager.Translate(TranslationKeys.ButtonStaticText)
+            : () => string.Format(_translatorManager.Translate(TranslationKeys.ButtonClickedTimesText), State.Counter);
 
-    public ValueTask OnAppearingAsync()
+    public ValueTask OnAppearingAsync(HomePageProps intent)
     {
-        if (!string.IsNullOrEmpty(Props?.PopInfo))
+        if (!string.IsNullOrEmpty(intent?.PopInfo))
         {
-            Console.WriteLine($"This info has been received from the inner page after popping: {Props.PopInfo}");
+            Console.WriteLine($"This info has been received from the inner page after popping: {intent.PopInfo}");
         }
 
         return ValueTask.CompletedTask;
     }
 
-    private async Task ChangeCultureToRussianAsync()
+    private Task ChangeCultureToRussianAsync() => ChangeCultureToAsync("ru-RU");
+
+    private Task ChangeCultureToTurkishAsync() => ChangeCultureToAsync("tr-TR");
+
+    private Task ResetLanguageAsync() => ChangeCultureToAsync("en");
+
+    private async Task ChangeCultureToAsync(string localeStr)
     {
-        var russian = new CultureInfo("ru-RU");
-        
-        var changed = await _localizationManager.SetCultureAsync(russian);
-        
-        Console.WriteLine($"Changed to russian: {changed}");
+        var culture = new CultureInfo(localeStr);
+
+        var changed = await _localizationManager.SetCultureAsync(culture);
+        _appShellSettings?.Value.NotifyCurrentCultureChanged();
+
+        Console.WriteLine($"Changed to {localeStr}: {changed}");
+
+        Invalidate();
     }
 
     private Task NavigateToSecondPageAsync() =>
         _navigation.GoToAsync(
-            Nalu.Navigation.Relative().Push<SecondPage>().WithPropsDelegate<SecondPageProps>(o => o.Id = 42));
+            Nalu.NavigationInfo.Navigation.Relative().Push<SecondPage>().WithIntent(new SecondPageProps { Id = 42 }));
 
     public void Dispose()
     {

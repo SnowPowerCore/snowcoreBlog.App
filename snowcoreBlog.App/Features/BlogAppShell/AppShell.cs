@@ -1,65 +1,86 @@
-using MauiReactor;
+﻿using MauiReactor;
+using MauiReactor.Parameters;
+using Mocale.Abstractions;
+using Mocale.Translations;
 using Nalu;
-using Nalu.Reactor;
 using snowcoreBlog.App.Features.Home;
 using snowcoreBlog.App.Features.Settings;
 using snowcoreBlog.App.Features.TabThree;
 using snowcoreBlog.App.Features.TabTwo;
-using snowcoreBlog.App.Resources;
 
 namespace snowcoreBlog.App.Features.BlogAppShell;
 
 public partial class AppShell : Component
 {
-    private readonly HomePage _homePage = new();
-    private readonly SettingsPage _settingsPage = new();
-    private readonly TabTwoPage _tabTwoPage = new();
-    private readonly TabThreePage _tabThreePage = new();
+    private IParameter<AppShellSettings> _appShellSettings;
+
+    [Inject]
+    private readonly ITranslatorManager _translatorManager;
+
+    protected override void OnMounted()
+    {
+        _appShellSettings = CreateParameter<AppShellSettings>();
+        _appShellSettings.Value.CurrentCultureChanged += OnCurrentCultureChanged;
+
+        base.OnMounted();
+    }
+
+    override protected void OnWillUnmount()
+    {
+        _appShellSettings.Value.CurrentCultureChanged -= OnCurrentCultureChanged;
+
+        base.OnWillUnmount();
+    }
 
     public override VisualNode Render() =>
         DeviceInfo.Current.Platform == DevicePlatform.WinUI
             ? RenderWindows()
             : RenderOther();
 
-    private NaluReactorShell RenderWindows() =>
-        AppShellControl(
+    private NavigationHost RenderWindows() =>
+        NavigationHost(
             ShellContent()
-                .Title(TranslationResources.HomeShellTitle)
+                .Title(_translatorManager.Translate(TranslationKeys.HomeShellTitle))
                 .Icon("icon_home.svg")
-                .RenderContent<HomePage>(() => _homePage),
+                .Set(Nalu.NavigationInfo.Navigation.PageTypeProperty, typeof(HomePage)),
             ShellContent()
-                .Title("Tab Two")
+                .Title(_translatorManager.Translate(TranslationKeys.TabTwoTitle))
                 .Icon("icon_home.svg")
-                .RenderContent<TabTwoPage>(() => _tabTwoPage),
+                .Set(Nalu.NavigationInfo.Navigation.PageTypeProperty, typeof(TabTwoPage)),
             ShellContent()
-                .Title("Tab Three")
+                .Title(_translatorManager.Translate(TranslationKeys.TabThreeTitle))
                 .Icon("icon_home.svg")
-                .RenderContent<TabThreePage>(() => _tabThreePage),
+                .Set(Nalu.NavigationInfo.Navigation.PageTypeProperty, typeof(TabThreePage)),
             ShellContent()
-                .Title(TranslationResources.SettingsShellTitle)
+                .Title(_translatorManager.Translate(TranslationKeys.SettingsShellTitle))
                 .Icon("icon_settings.svg")
-                .RenderContent<SettingsPage>(() => _settingsPage)
+                .Set(Nalu.NavigationInfo.Navigation.PageTypeProperty, typeof(SettingsPage))
         );
 
-    private NaluReactorShell RenderOther() =>
-        AppShellControl(
+    private NavigationHost RenderOther() =>
+        NavigationHost(
             TabBar(
                 ShellContent()
-                    .Title(TranslationResources.HomeShellTitle)
+                    .Title(_translatorManager.Translate(TranslationKeys.HomeShellTitle))
                     .Icon("icon_home.svg")
-                    .RenderContent<HomePage>(() => _homePage),
+                    .Set(Nalu.NavigationInfo.Navigation.PageTypeProperty, typeof(HomePage)),
                 ShellContent()
-                    .Title("Tab Two")
+                    .Title(_translatorManager.Translate(TranslationKeys.TabTwoTitle))
                     .Icon("icon_home.svg")
-                    .RenderContent<TabTwoPage>(() => _tabTwoPage),
+                    .Set(Nalu.NavigationInfo.Navigation.PageTypeProperty, typeof(TabTwoPage)),
                 ShellContent()
-                    .Title("Tab Three")
+                    .Title(_translatorManager.Translate(TranslationKeys.TabThreeTitle))
                     .Icon("icon_home.svg")
-                    .RenderContent<TabThreePage>(() => _tabThreePage),
+                    .Set(Nalu.NavigationInfo.Navigation.PageTypeProperty, typeof(TabThreePage)),
                 ShellContent()
-                    .Title(TranslationResources.SettingsShellTitle)
+                    .Title(_translatorManager.Translate(TranslationKeys.SettingsShellTitle))
                     .Icon("icon_settings.svg")
-                    .RenderContent<SettingsPage>(() => _settingsPage)
+                    .Set(Nalu.NavigationInfo.Navigation.PageTypeProperty, typeof(SettingsPage))
             )
         );
+
+    private void OnCurrentCultureChanged(object? sender, EventArgs e)
+    {
+        Invalidate();
+    }
 }

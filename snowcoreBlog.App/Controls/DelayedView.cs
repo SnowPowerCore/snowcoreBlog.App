@@ -19,6 +19,8 @@ public class DelayedView : ContentView, ILazyView, IDisposable
 {
     private bool _disposed = false;
 
+    private readonly CancellationTokenSource _cts = new();
+
     public static readonly BindableProperty LoadingViewProperty = BindableProperty.Create(
         nameof(LoadingView),
         typeof(View),
@@ -128,6 +130,9 @@ public class DelayedView : ContentView, ILazyView, IDisposable
         {
             if (disposing)
             {
+                _cts.Cancel();
+                _cts.Dispose();
+
                 if (Content is IDisposable disposable)
                 {
                     IsLazyLoaded = false;
@@ -150,8 +155,16 @@ public class DelayedView : ContentView, ILazyView, IDisposable
         TaskMonitor.Create(
             async () =>
             {
-                await Task.Delay(DelayInMilliseconds);
-                if (IsLazyLoaded)
+                try
+                {
+                    await Task.Delay(DelayInMilliseconds, _cts.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                    return;
+                }
+
+                if (_disposed || IsLazyLoaded)
                 {
                     return;
                 }

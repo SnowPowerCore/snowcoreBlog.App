@@ -4,7 +4,7 @@ namespace snowcoreBlog.App.Controls;
 
 public partial class InsetsView : ContentView
 {
-    public InsetsView(): base()
+    public InsetsView() : base()
     {
         SetBinding(PaddingProperty, new Binding(nameof(Insets.InsetsThickness), source: Insets.Current));
     }

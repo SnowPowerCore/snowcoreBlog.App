@@ -43,8 +43,6 @@ public class InternalCustomApplicationTheme : ApplicationTheme
     public static Brush Gray900Brush { get; } = new SolidColorBrush(Gray900);
     public static Brush Gray950Brush { get; } = new SolidColorBrush(Gray950);
 
-
-
     protected override void OnApply()
     {
         ActivityIndicatorStyles.Default = _ =>

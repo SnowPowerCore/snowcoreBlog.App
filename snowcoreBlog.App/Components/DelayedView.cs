@@ -21,7 +21,7 @@ public partial class DelayedView
 
     private static void ShowView(View view, BindableObject childControl)
     {
-        using var lazyView = view as Controls.DelayedView;
+        var lazyView = view as Controls.DelayedView;
         if (lazyView is { IsLazyLoaded: false })
         {
             lazyView.View = (View)childControl;
